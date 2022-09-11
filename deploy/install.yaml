@@ -1,0 +1,159 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firefly-controller-manager
+  namespace: firefly-system
+spec:
+  selector:
+    matchLabels:
+      app: firefly-controller-manager
+  template:
+    metadata:
+      labels:
+        app: firefly-controller-manager
+    spec:
+      serviceAccountName: firefly-controller-manager
+      containers:
+      - command:
+        - /bin/firefly-controller-manager
+        - --v=4
+        image: ghcr.io/carlory/firefly-controller-manager:latest
+        imagePullPolicy: Always
+        name: firefly-controller-manager
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: firefly-controller-manager
+  namespace: firefly-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: firefly-controller-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: firefly-controller-manager
+  namespace: firefly-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+  name: firefly-aggregate-to-admin
+rules:
+- apiGroups:
+  - install.firefly.io
+  resources:
+  - karmadas
+  verbs:
+  - '*'
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: firefly-selfsigned-issuer
+  namespace: firefly-system
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: firefly-webhook-serving-cert
+  namespace: firefly-system
+spec:
+  dnsNames:
+    - firefly-webhook.firefly-system.svc
+    - firefly-webhook.firefly-system.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: firefly-selfsigned-issuer
+  secretName: firefly-webhook-server-cert
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: firefly-webhook
+  namespace: firefly-system
+spec:
+  selector:
+    app: firefly-webhook
+  ports:
+    - port: 443
+      targetPort: 8443
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firefly-webhook
+  namespace: firefly-system
+  labels:
+    app: firefly-webhook
+spec:
+  selector:
+    matchLabels:
+      app: firefly-webhook
+  template:
+    metadata:
+      labels:
+        app: firefly-webhook
+    spec:
+      serviceAccountName: firefly-controller-manager
+      containers:
+        - name: firefly-webhook
+          image: ghcr.io/carlory/firefly-webhook
+          imagePullPolicy: Always
+          command:
+            - /bin/firefly-webhook
+            - --bind-address=0.0.0.0
+            - --secure-port=8443
+            - --cert-dir=/var/serving-cert
+            - --v=4
+          ports:
+            - containerPort: 8443
+          volumeMounts:
+            - name: cert
+              mountPath: /var/serving-cert
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8443
+              scheme: HTTPS
+      volumes:
+        - name: cert
+          secret:
+            secretName: firefly-webhook-server-cert
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: firefly-webhook
+  labels:
+    app: firefly-webhook
+  annotations:
+    cert-manager.io/inject-ca-from: firefly-system/firefly-webhook-serving-cert
+webhooks:
+- name: karmadas.v1alpha1.install.firefly.io
+  rules:
+  - operations: ["CREATE", "UPDATE"]
+    apiGroups: ["install.firefly.io"]
+    apiVersions: ["v1alpha1"]
+    resources: ["karmadas"]
+    scope: "Namespaced"
+  clientConfig:
+    service:
+      name: firefly-webhook
+      namespace: firefly-system
+      path: /mutate-policy-firefly-io-v1alpha1-karmada
+      port: 443
+  failurePolicy: Fail
+  sideEffects: None
+  admissionReviewVersions: ["v1"]
+  timeoutSeconds: 3

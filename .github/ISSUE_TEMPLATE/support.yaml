@@ -1,0 +1,17 @@
+name: Support Request
+description: Support request or question relating to Firefly
+labels: kind/question
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Please provide an in-depth description of the question you have
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: What do you think about this question?
+    validations:
+      required: true

@@ -1,0 +1,16 @@
+FROM golang as builder
+
+WORKDIR /go/src/github.com/carlory/firefly
+
+COPY . /go/src/github.com/carlory/firefly 
+RUN cd /go/src/github.com/carlory/firefly && \
+    go build -o /bin/firefly-webhook cmd/firefly-webhook/webhook.go
+
+
+# Use distroless as minimal base image to package the manager binary
+# Refer to https://github.com/GoogleContainerTools/distroless for more details
+FROM gcr.io/distroless/base:nonroot
+
+WORKDIR /go/src/github.com/carlory/firefly
+COPY --from=builder /bin/firefly-webhook  /bin/firefly-webhook
+USER 65532:65532

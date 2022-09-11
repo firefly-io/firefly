@@ -1,0 +1,18 @@
+apiVersion: install.firefly.io/v1alpha1
+kind: Karmada
+metadata:
+  name: demo
+  namespace: firefly-system
+spec:
+  networking:
+    serviceSubnet: 10.96.0.0/12
+    dnsDomain: cluster.local
+  kubernetesVersion: v1.21.7
+  karmadaVersion: v1.2.0
+  imageRepository: ghcr.io/carlory
+  controllerManager:
+    kubeControllerManager:
+      controllers:
+      - namespace
+      - garbagecollector
+      - serviceaccount-token
