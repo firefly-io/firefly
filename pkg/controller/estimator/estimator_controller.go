@@ -74,6 +74,7 @@ func NewEstimatorController(
 		karmadaName:          karmadaName,
 		fireflyKubeClient:    fireflyKubeClient,
 		fireflyKarmadaLister: fireflyKarmadaInformer.Lister(),
+		fireflyKarmadaSynced: fireflyKarmadaInformer.Informer().HasSynced,
 		queue:                workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "cluster"),
 		workerLoopPeriod:     time.Second,
 		eventBroadcaster:     broadcaster,
@@ -98,6 +99,7 @@ type EstimatorController struct {
 	karmadaName          string
 	fireflyKubeClient    clientset.Interface
 	fireflyKarmadaLister installlisters.KarmadaLister
+	fireflyKarmadaSynced cache.InformerSynced
 
 	clustersLister clusterlisters.ClusterLister
 	clustersSynced cache.InformerSynced
@@ -128,7 +130,7 @@ func (ctrl *EstimatorController) Run(ctx context.Context, workers int) {
 	klog.Infof("Starting cluster controller")
 	defer klog.Infof("Shutting down cluster controller")
 
-	if !cache.WaitForNamedCacheSync("cluster", ctx.Done(), ctrl.clustersSynced) {
+	if !cache.WaitForCacheSync(ctx.Done(), ctrl.clustersSynced, ctrl.fireflyKarmadaSynced) {
 		return
 	}
 
