@@ -130,7 +130,7 @@ func (ctrl *EstimatorController) Run(ctx context.Context, workers int) {
 	klog.Infof("Starting cluster controller")
 	defer klog.Infof("Shutting down cluster controller")
 
-	if !cache.WaitForCacheSync(ctx.Done(), ctrl.clustersSynced, ctrl.fireflyKarmadaSynced) {
+	if !cache.WaitForNamedCacheSync("estimator", ctx.Done(), ctrl.clustersSynced, ctrl.fireflyKarmadaSynced) {
 		return
 	}
 

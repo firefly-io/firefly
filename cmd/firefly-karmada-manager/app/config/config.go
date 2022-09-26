@@ -22,12 +22,12 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
 
-	fireflyctrlmgrconfig "github.com/carlory/firefly/pkg/controller/apis/config"
+	fireflyctrlmgrconfig "github.com/carlory/firefly/pkg/karmada/controller/apis/config"
 )
 
 // Config is the main context object for the controller manager.
 type Config struct {
-	ComponentConfig fireflyctrlmgrconfig.FireflyControllerManagerConfiguration
+	ComponentConfig fireflyctrlmgrconfig.FireflyKarmadaManagerConfiguration
 
 	SecureServing *apiserver.SecureServingInfo
 	// LoopbackClientConfig is a config for a privileged loopback connection

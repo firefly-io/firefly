@@ -22,7 +22,7 @@ import (
 
 	"k8s.io/controller-manager/controller"
 
-	"github.com/carlory/firefly/pkg/controller/estimator"
+	"github.com/carlory/firefly/pkg/karmada/controller/estimator"
 )
 
 func startwEstimatorController(ctx context.Context, controllerContext ControllerContext) (controller.Interface, bool, error) {

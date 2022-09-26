@@ -62,9 +62,9 @@ import (
 
 	"github.com/carlory/firefly/cmd/firefly-karmada-manager/app/config"
 	"github.com/carlory/firefly/cmd/firefly-karmada-manager/app/options"
-	fireflyctrlmgrconfig "github.com/carlory/firefly/pkg/controller/apis/config"
 	fireflyversioned "github.com/carlory/firefly/pkg/generated/clientset/versioned"
 	fireflyinformers "github.com/carlory/firefly/pkg/generated/informers/externalversions"
+	fireflyctrlmgrconfig "github.com/carlory/firefly/pkg/karmada/controller/apis/config"
 )
 
 func init() {
@@ -319,7 +319,7 @@ type ControllerContext struct {
 	ObjectOrMetadataInformerFactory informerfactory.InformerFactory
 
 	// ComponentConfig provides access to init options for a given controller
-	ComponentConfig fireflyctrlmgrconfig.FireflyControllerManagerConfiguration
+	ComponentConfig fireflyctrlmgrconfig.FireflyKarmadaManagerConfiguration
 
 	// DeferredDiscoveryRESTMapper is a RESTMapper that will defer
 	// initialization of the RESTMapper until the first mapping is
