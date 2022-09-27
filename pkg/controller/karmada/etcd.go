@@ -9,11 +9,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
+	"github.com/carlory/firefly/pkg/constants"
+	"github.com/carlory/firefly/pkg/util"
 )
 
 // makeEtcdService etcd service
 func makeEtcdService(karmada *installv1alpha1.Karmada) *corev1.Service {
-	etcdName := ComponentName(KarmadaComponentEtcd, karmada.Name)
+	etcdName := util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name)
 	return &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -54,7 +56,7 @@ func makeEtcdService(karmada *installv1alpha1.Karmada) *corev1.Service {
 func makeETCDStatefulSet(karmada *installv1alpha1.Karmada) *appsv1.StatefulSet {
 	repository := karmada.Spec.ImageRepository
 
-	etcdName := ComponentName(KarmadaComponentEtcd, karmada.Name)
+	etcdName := util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name)
 	etcd := &appsv1.StatefulSet{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
@@ -78,7 +80,7 @@ func makeETCDStatefulSet(karmada *installv1alpha1.Karmada) *appsv1.StatefulSet {
 					Containers: []corev1.Container{
 						{
 							Name:            "etcd",
-							Image:           ComponentImageName(repository, KarmadaComponentEtcd, "3.4.13-0"),
+							Image:           util.ComponentImageName(repository, constants.KarmadaComponentEtcd, "3.4.13-0"),
 							ImagePullPolicy: "IfNotPresent",
 							Command: []string{
 								"/usr/local/bin/etcd",
@@ -113,7 +115,7 @@ func makeETCDStatefulSet(karmada *installv1alpha1.Karmada) *appsv1.StatefulSet {
 							Name: "etcd-certs",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: fmt.Sprintf("%s-cert", ComponentName(KarmadaComponentEtcd, karmada.Name)),
+									SecretName: fmt.Sprintf("%s-cert", util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name)),
 								},
 							},
 						},

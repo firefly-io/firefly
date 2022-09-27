@@ -76,6 +76,10 @@ type KarmadaSpec struct {
 	// +optional
 	APIServer APIServerComponent `json:"apiServer,omitempty"`
 
+	// Webhook contains extra settings for the webhook component
+	// +optional
+	Webhook WebhookComponent `json:"webhook,omitempty"`
+
 	// ControllerManager contains extra settings for the controller manager control plane component
 	// +optional
 	ControllerManager ControllerManagerComponent `json:"controllerManager,omitempty"`
@@ -235,6 +239,44 @@ type KarmadaAggregratedAPIServerComponent struct {
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
+// WebhookComponent holds settings to webhook component of the karmada.
+type WebhookComponent struct {
+	// KarmadaWebhook holds settings to karmada-webook component of the karmada.
+	KarmadaWebhook KarmadaWebhookComponent `json:"karmadaWebhook,omitempty"`
+}
+
+// KarmadaWebhookComponent holds settings to karmada-webhook component of the karmada.
+type KarmadaWebhookComponent struct {
+	// ImageMeta allows to customize the image used for the karmada-webhook component component
+	ImageMeta `json:",inline"`
+
+	// Number of desired pods. This is a pointer to distinguish between explicit
+	// zero and not specified. Defaults to 1.
+	// +optional
+	Replicas *int32 `json:"replicas,omitempty"`
+
+	// ExtraArgs is an extra set of flags to pass to the karmada-webhook component or
+	// override. A key in this map is the flag name as it appears on the command line except
+	// without leading dash(es).
+	//
+	// Note: This is a temporary solution to allow for the configuration of the
+	// karmada-webhook component. In the future, we will provide a more structured way
+	// to configure the component. Once that is done, this field will be discouraged to be used.
+	// Incorrect settings on this feild maybe lead to the corresponding component in an unhealthy
+	// state. Before you do it, please confirm that you understand the risks of this configuration.
+	//
+	// For supported flags, please see
+	// https://github.com/karmada-io/karmada/blob/master/cmd/webhook/app/options/options.go
+	// for details.
+	// +optional
+	ExtraArgs map[string]string `json:"extraArgs,omitempty"`
+
+	// Compute Resources required by this component.
+	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+	// +optional
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+}
+
 // ControllerManagerComponent holds settings to controller manager components of the karmada.
 type ControllerManagerComponent struct {
 	// KubeControllerManager holds settings to kube-controller-manager component of the karmada.
@@ -371,6 +413,10 @@ type SchedulerComponent struct {
 	// KarmadaScheduler holds settings to karmada-descheduler conponent of the karmada.
 	// +optional
 	KarmadaDescheduler KarmadaDeschedulerComponent `json:"karmadaDescheduler,omitempty"`
+
+	// KarmadaSchedulerEstimator holds settings to karmada-scheduler-estimator conponent of the karmada.
+	// +optional
+	KarmadaSchedulerEstimator KarmadaSchedulerEstimatorComponent `json:"karmadaSchedulerEstimator,omitempty"`
 }
 
 // KarmadaSchedulerComponent holds settings to karmada-scheduler conponent of the karmada.
@@ -427,6 +473,38 @@ type KarmadaDeschedulerComponent struct {
 	//
 	// For supported flags, please see
 	// https://github.com/karmada-io/karmada/blob/master/cmd/descheduler/app/options/options.go
+	// for details.
+	// +optional
+	ExtraArgs map[string]string `json:"extraArgs,omitempty"`
+
+	// Compute Resources required by this component.
+	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+	// +optional
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+}
+
+// KarmadaSchedulerEstimatorComponent holds settings to karmada-scheduler-estimator conponent of the karmada.
+type KarmadaSchedulerEstimatorComponent struct {
+	// ImageMeta allows to customize the image used for the karmada-scheduler-estimator component
+	ImageMeta `json:",inline"`
+
+	// Number of desired pods. This is a pointer to distinguish between explicit
+	// zero and not specified. Defaults to 1.
+	// +optional
+	Replicas *int32 `json:"replicas,omitempty"`
+
+	// ExtraArgs is an extra set of flags to pass to the karmada-scheduler-estimator component or override.
+	// A key in this map is the flag name as it appears on the command line except without
+	// leading dash(es).
+	//
+	// Note: This is a temporary solution to allow for the configuration of the karmada-scheduler-estimator
+	// component. In the future, we will provide a more structured way to configure the component.
+	// Once that is done, this field will be discouraged to be used.
+	// Incorrect settings on this feild maybe lead to the corresponding component in an unhealthy
+	// state. Before you do it, please confirm that you understand the risks of this configuration.
+	//
+	// For supported flags, please see
+	// https://github.com/karmada-io/karmada/blob/master/cmd/scheduler-estimator/app/options/options.go
 	// for details.
 	// +optional
 	ExtraArgs map[string]string `json:"extraArgs,omitempty"`

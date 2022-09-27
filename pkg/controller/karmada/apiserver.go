@@ -19,6 +19,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
+	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
 )
 
@@ -87,7 +88,7 @@ func (ctrl *KarmadaController) initKarmadaAPIServer(karmada *installv1alpha1.Kar
 	}
 	waiter = util.NewKubeWaiter(ctrl.client, 10*time.Second)
 
-	if err := waiter.WaitForPodsWithLabel(karmada.Namespace, fmt.Sprintf("app=%s", ComponentName(KarmadaComponentAggregratedAPIServer, karmada.Name))); err != nil {
+	if err := waiter.WaitForPodsWithLabel(karmada.Namespace, fmt.Sprintf("app=%s", util.ComponentName(constants.KarmadaComponentAggregratedAPIServer, karmada.Name))); err != nil {
 		return err
 	}
 
@@ -115,7 +116,7 @@ func (ctrl *KarmadaController) initKarmadaAPIServer(karmada *installv1alpha1.Kar
 }
 
 func (ctrl *KarmadaController) initWebhook(karmadaClient kubernetes.Interface, restConfig *rest.Config, karmada *installv1alpha1.Karmada) error {
-	karmadaCert, err := ctrl.client.CoreV1().Secrets(karmada.Namespace).Get(context.TODO(), fmt.Sprintf("%s-cert", ComponentName("karmada", karmada.Name)), metav1.GetOptions{})
+	karmadaCert, err := ctrl.client.CoreV1().Secrets(karmada.Namespace).Get(context.TODO(), fmt.Sprintf("%s-cert", util.ComponentName("karmada", karmada.Name)), metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -143,7 +144,7 @@ func (ctrl *KarmadaController) initAPIService(karmadaClient kubernetes.Interface
 		},
 		Spec: corev1.ServiceSpec{
 			Type:         corev1.ServiceTypeExternalName,
-			ExternalName: fmt.Sprintf("%s.%s.svc", ComponentName(KarmadaComponentAggregratedAPIServer, karmada.Name), karmada.Namespace),
+			ExternalName: fmt.Sprintf("%s.%s.svc", util.ComponentName(constants.KarmadaComponentAggregratedAPIServer, karmada.Name), karmada.Namespace),
 		},
 	}
 	_, err := karmadaClient.CoreV1().Services("karmada-system").Create(context.TODO(), aaService, metav1.CreateOptions{})

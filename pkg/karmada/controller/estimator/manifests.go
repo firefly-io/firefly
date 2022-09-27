@@ -16,6 +16,8 @@ import (
 	"sigs.k8s.io/yaml"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
+	"github.com/carlory/firefly/pkg/constants"
+	"github.com/carlory/firefly/pkg/util"
 )
 
 func (ctrl *EstimatorController) KubeConfigFromSecret(ctx context.Context, cluster *clusterv1alpha1.Cluster) (*clientcmdapi.Config, error) {
@@ -58,7 +60,7 @@ func (ctrl *EstimatorController) KubeConfigFromSecret(ctx context.Context, clust
 	return cfg, nil
 }
 
-func (ctrl *EstimatorController) EnsureEstimatorKubecinfigSecret(ctx context.Context, karmada *installv1alpha1.Karmada, cluster *clusterv1alpha1.Cluster) error {
+func (ctrl *EstimatorController) EnsureEstimatorKubeconfigSecret(ctx context.Context, karmada *installv1alpha1.Karmada, cluster *clusterv1alpha1.Cluster) error {
 	kubeconfig, err := ctrl.KubeConfigFromSecret(ctx, cluster)
 	if err != nil {
 		return err
@@ -124,6 +126,9 @@ func (ctrl *EstimatorController) EnsureEstimatorService(ctx context.Context, kar
 
 func (ctrl *EstimatorController) EnsureEstimatorDeployment(ctx context.Context, karmada *installv1alpha1.Karmada, cluster *clusterv1alpha1.Cluster) error {
 	estimatorName := GenerateEstimatorServiceName(karmada.Name, "karmada-scheduler-estimator", cluster.Name)
+	repository := karmada.Spec.ImageRepository
+	version := karmada.Spec.KarmadaVersion
+
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      estimatorName,
@@ -158,7 +163,7 @@ func (ctrl *EstimatorController) EnsureEstimatorDeployment(ctx context.Context, 
 					Containers: []corev1.Container{
 						{
 							Name:  estimatorName,
-							Image: "swr.ap-southeast-1.myhuaweicloud.com/karmada/karmada-scheduler-estimator:v1.2.0",
+							Image: util.ComponentImageName(repository, constants.KarmadaComponentSchedulerEstimator, version),
 							Command: []string{
 								"/bin/karmada-scheduler-estimator",
 								"--kubeconfig",

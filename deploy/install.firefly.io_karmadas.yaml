@@ -799,6 +799,142 @@ spec:
                             type: object
                         type: object
                     type: object
+                  karmadaSchedulerEstimator:
+                    description: KarmadaSchedulerEstimator holds settings to karmada-scheduler-estimator
+                      conponent of the karmada.
+                    properties:
+                      extraArgs:
+                        additionalProperties:
+                          type: string
+                        description: "ExtraArgs is an extra set of flags to pass to
+                          the karmada-scheduler-estimator component or override. A
+                          key in this map is the flag name as it appears on the command
+                          line except without leading dash(es). \n Note: This is a
+                          temporary solution to allow for the configuration of the
+                          karmada-scheduler-estimator component. In the future, we
+                          will provide a more structured way to configure the component.
+                          Once that is done, this field will be discouraged to be
+                          used. Incorrect settings on this feild maybe lead to the
+                          corresponding component in an unhealthy state. Before you
+                          do it, please confirm that you understand the risks of this
+                          configuration. \n For supported flags, please see https://github.com/karmada-io/karmada/blob/master/cmd/scheduler-estimator/app/options/options.go
+                          for details."
+                        type: object
+                      imageRepository:
+                        description: ImageRepository sets the container registry to
+                          pull images from. if not set, the ImageRepository defined
+                          in KarmadaSpec will be used instead.
+                        type: string
+                      imageTag:
+                        description: ImageTag allows to specify a tag for the image.
+                          In case this value is set, firefly does not change automatically
+                          the version of the above components during upgrades.
+                        type: string
+                      replicas:
+                        description: Number of desired pods. This is a pointer to
+                          distinguish between explicit zero and not specified. Defaults
+                          to 1.
+                        format: int32
+                        type: integer
+                      resources:
+                        description: 'Compute Resources required by this component.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                        properties:
+                          limits:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              x-kubernetes-int-or-string: true
+                            description: 'Limits describes the maximum amount of compute
+                              resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                            type: object
+                          requests:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              x-kubernetes-int-or-string: true
+                            description: 'Requests describes the minimum amount of
+                              compute resources required. If Requests is omitted for
+                              a container, it defaults to Limits if that is explicitly
+                              specified, otherwise to an implementation-defined value.
+                              More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                            type: object
+                        type: object
+                    type: object
+                type: object
+              webhook:
+                description: Webhook contains extra settings for the webhook component
+                properties:
+                  karmadaWebhook:
+                    description: KarmadaWebhook holds settings to karmada-webook component
+                      of the karmada.
+                    properties:
+                      extraArgs:
+                        additionalProperties:
+                          type: string
+                        description: "ExtraArgs is an extra set of flags to pass to
+                          the karmada-webhook component or override. A key in this
+                          map is the flag name as it appears on the command line except
+                          without leading dash(es). \n Note: This is a temporary solution
+                          to allow for the configuration of the karmada-webhook component.
+                          In the future, we will provide a more structured way to
+                          configure the component. Once that is done, this field will
+                          be discouraged to be used. Incorrect settings on this feild
+                          maybe lead to the corresponding component in an unhealthy
+                          state. Before you do it, please confirm that you understand
+                          the risks of this configuration. \n For supported flags,
+                          please see https://github.com/karmada-io/karmada/blob/master/cmd/webhook/app/options/options.go
+                          for details."
+                        type: object
+                      imageRepository:
+                        description: ImageRepository sets the container registry to
+                          pull images from. if not set, the ImageRepository defined
+                          in KarmadaSpec will be used instead.
+                        type: string
+                      imageTag:
+                        description: ImageTag allows to specify a tag for the image.
+                          In case this value is set, firefly does not change automatically
+                          the version of the above components during upgrades.
+                        type: string
+                      replicas:
+                        description: Number of desired pods. This is a pointer to
+                          distinguish between explicit zero and not specified. Defaults
+                          to 1.
+                        format: int32
+                        type: integer
+                      resources:
+                        description: 'Compute Resources required by this component.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                        properties:
+                          limits:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              x-kubernetes-int-or-string: true
+                            description: 'Limits describes the maximum amount of compute
+                              resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                            type: object
+                          requests:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              x-kubernetes-int-or-string: true
+                            description: 'Requests describes the minimum amount of
+                              compute resources required. If Requests is omitted for
+                              a container, it defaults to Limits if that is explicitly
+                              specified, otherwise to an implementation-defined value.
+                              More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                            type: object
+                        type: object
+                    type: object
                 type: object
             type: object
           status:

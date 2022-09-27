@@ -44,6 +44,11 @@ func SetDefaults_Karmada(obj *Karmada) {
 		apiServer.KarmadaAggregratedAPIServer.Replicas = utilpointer.Int32(1)
 	}
 
+	webhook := &obj.Spec.Webhook
+	if webhook.KarmadaWebhook.Replicas == nil {
+		webhook.KarmadaWebhook.Replicas = utilpointer.Int32(1)
+	}
+
 	controllerManager := &obj.Spec.ControllerManager
 	if controllerManager.KubeControllerManager.Replicas == nil {
 		controllerManager.KubeControllerManager.Replicas = utilpointer.Int32(1)
@@ -61,5 +66,8 @@ func SetDefaults_Karmada(obj *Karmada) {
 	}
 	if scheduler.KarmadaDescheduler.Replicas == nil {
 		scheduler.KarmadaDescheduler.Replicas = utilpointer.Int32(1)
+	}
+	if scheduler.KarmadaSchedulerEstimator.Replicas == nil {
+		scheduler.KarmadaSchedulerEstimator.Replicas = utilpointer.Int32(1)
 	}
 }

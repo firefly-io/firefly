@@ -13,13 +13,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
+	"github.com/carlory/firefly/pkg/constants"
+	"github.com/carlory/firefly/pkg/util"
 )
 
 func (ctrl *KarmadaController) EnsureFireflyKarmadaManager(karmada *installv1alpha1.Karmada) error {
 	if err := ctrl.EnsureFireflyKarmadaManagerServiceAccount(karmada); err != nil {
 		return err
 	}
-	if err := ctrl.EnsureFireflyKarmadaManagerRole(karmada); err != nil {
+	if err := ctrl.EnsureFireflyKarmadaManagerClusterRoleBinding(karmada); err != nil {
 		return err
 	}
 	if err := ctrl.EnsureFireflyKarmadaManagerRoleBinding(karmada); err != nil {
@@ -31,7 +33,7 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManager(karmada *installv1alp
 func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerServiceAccount(karmada *installv1alpha1.Karmada) error {
 	sa := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      ComponentName(FireflyComponentKarmadaManager, karmada.Name),
+			Name:      util.ComponentName(constants.FireflyComponentKarmadaManager, karmada.Name),
 			Namespace: karmada.Namespace,
 		},
 	}
@@ -43,21 +45,42 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerServiceAccount(karmada
 	return nil
 }
 
-func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerRole(karmada *installv1alpha1.Karmada) error {
-	// TODO
+func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerClusterRoleBinding(karmada *installv1alpha1.Karmada) error {
+	crb := &rbacv1.ClusterRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: util.ComponentName(constants.FireflyComponentKarmadaManager, karmada.Name),
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      util.ComponentName(constants.FireflyComponentKarmadaManager, karmada.Name),
+				Namespace: karmada.Namespace,
+			},
+		},
+		RoleRef: rbacv1.RoleRef{
+			Kind:     "ClusterRole",
+			Name:     "firefly:karmada-manager",
+			APIGroup: "rbac.authorization.k8s.io",
+		},
+	}
+	controllerutil.SetOwnerReference(karmada, crb, scheme.Scheme)
+	_, err := ctrl.client.RbacV1().ClusterRoleBindings().Create(context.TODO(), crb, metav1.CreateOptions{})
+	if err != nil && !errors.IsAlreadyExists(err) {
+		return err
+	}
 	return nil
 }
 
 func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerRoleBinding(karmada *installv1alpha1.Karmada) error {
 	rb := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      ComponentName(FireflyComponentKarmadaManager, karmada.Name),
+			Name:      util.ComponentName(constants.FireflyComponentKarmadaManager, karmada.Name),
 			Namespace: karmada.Namespace,
 		},
 		Subjects: []rbacv1.Subject{
 			{
 				Kind:      "ServiceAccount",
-				Name:      ComponentName(FireflyComponentKarmadaManager, karmada.Name),
+				Name:      util.ComponentName(constants.FireflyComponentKarmadaManager, karmada.Name),
 				Namespace: karmada.Namespace,
 			},
 		},
@@ -76,7 +99,9 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerRoleBinding(karmada *i
 }
 
 func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerDeployment(karmada *installv1alpha1.Karmada) error {
-	componentName := ComponentName(FireflyComponentKarmadaManager, karmada.Name)
+	componentName := util.ComponentName(constants.FireflyComponentKarmadaManager, karmada.Name)
+	repository := karmada.Spec.ImageRepository
+
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      componentName,
@@ -109,7 +134,7 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerDeployment(karmada *in
 					Containers: []corev1.Container{
 						{
 							Name:            componentName,
-							Image:           "ghcr.io/carlory/firefly-karmada-manager:v1.2.0",
+							Image:           util.ComponentImageName(repository, constants.FireflyComponentKarmadaManager, "v1.2.0"),
 							ImagePullPolicy: corev1.PullAlways,
 							Command: []string{
 								"/bin/firefly-karmada-manager",

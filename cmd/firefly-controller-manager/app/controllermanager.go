@@ -52,7 +52,6 @@ import (
 	"k8s.io/component-base/version/verflag"
 	genericcontrollermanager "k8s.io/controller-manager/app"
 	"k8s.io/controller-manager/controller"
-	"k8s.io/controller-manager/pkg/clientbuilder"
 	controllerhealthz "k8s.io/controller-manager/pkg/healthz"
 	"k8s.io/controller-manager/pkg/informerfactory"
 	"k8s.io/controller-manager/pkg/leadermigration"
@@ -60,6 +59,7 @@ import (
 
 	"github.com/carlory/firefly/cmd/firefly-controller-manager/app/config"
 	"github.com/carlory/firefly/cmd/firefly-controller-manager/app/options"
+	"github.com/carlory/firefly/pkg/clientbuilder"
 	fireflyctrlmgrconfig "github.com/carlory/firefly/pkg/controller/apis/config"
 	fireflyversioned "github.com/carlory/firefly/pkg/generated/clientset/versioned"
 	fireflyinformers "github.com/carlory/firefly/pkg/generated/informers/externalversions"
@@ -287,7 +287,7 @@ func Run(c *config.CompletedConfig, stopCh <-chan struct{}) error {
 // ControllerContext defines the context object for controller
 type ControllerContext struct {
 	// ClientBuilder will provide a client for this controller to use
-	ClientBuilder clientbuilder.ControllerClientBuilder
+	ClientBuilder clientbuilder.FireflyControllerClientBuilder
 
 	// KubeInformerFactory gives access to kubernetes informers for the controller.
 	KubeInformerFactory informers.SharedInformerFactory
@@ -360,7 +360,7 @@ func NewControllerInitializers() map[string]InitFunc {
 // TODO: In general, any controller checking this needs to be dynamic so
 // users don't have to restart their controller manager if they change the apiserver.
 // Until we get there, the structure here needs to be exposed for the construction of a proper ControllerContext.
-func GetAvailableResources(clientBuilder clientbuilder.ControllerClientBuilder) (map[schema.GroupVersionResource]bool, error) {
+func GetAvailableResources(clientBuilder clientbuilder.FireflyControllerClientBuilder) (map[schema.GroupVersionResource]bool, error) {
 	client := clientBuilder.ClientOrDie("controller-discovery")
 	discoveryClient := client.Discovery()
 	_, resourceMap, err := discoveryClient.ServerGroupsAndResources()
@@ -388,7 +388,7 @@ func GetAvailableResources(clientBuilder clientbuilder.ControllerClientBuilder) 
 // CreateControllerContext creates a context struct containing references to resources needed by the
 // controllers such as the cloud provider and clientBuilder. rootClientBuilder is only used for
 // the shared-informers client and token controller.
-func CreateControllerContext(s *config.CompletedConfig, rootClientBuilder, clientBuilder clientbuilder.ControllerClientBuilder, stop <-chan struct{}) (ControllerContext, error) {
+func CreateControllerContext(s *config.CompletedConfig, rootClientBuilder, clientBuilder clientbuilder.FireflyControllerClientBuilder, stop <-chan struct{}) (ControllerContext, error) {
 	versionedClient := rootClientBuilder.ClientOrDie("firefly-kube-shared-informers")
 	kubeSharedInformers := informers.NewSharedInformerFactory(versionedClient, ResyncPeriod(s)())
 
@@ -482,11 +482,8 @@ func StartControllers(ctx context.Context, controllerCtx ControllerContext, cont
 }
 
 // createClientBuilders creates clientBuilder and rootClientBuilder from the given configuration
-func createClientBuilders(c *config.CompletedConfig) (clientBuilder clientbuilder.ControllerClientBuilder, rootClientBuilder clientbuilder.ControllerClientBuilder) {
-	rootClientBuilder = clientbuilder.SimpleControllerClientBuilder{
-		ClientConfig: c.Kubeconfig,
-	}
-
+func createClientBuilders(c *config.CompletedConfig) (clientBuilder clientbuilder.FireflyControllerClientBuilder, rootClientBuilder clientbuilder.FireflyControllerClientBuilder) {
+	rootClientBuilder = clientbuilder.NewSimpleFireflyControllerClientBuilder(c.Kubeconfig)
 	clientBuilder = rootClientBuilder
 	return
 }

@@ -60,10 +60,10 @@ func NewEstimatorController(
 	fireflyKarmadaInformer installinformers.KarmadaInformer,
 ) (*EstimatorController, error) {
 	broadcaster := record.NewBroadcaster()
-	recorder := broadcaster.NewRecorder(scheme.Scheme, v1.EventSource{Component: "cluster-controller"})
+	recorder := broadcaster.NewRecorder(scheme.Scheme, v1.EventSource{Component: "estimator-controller"})
 
 	if karmadaKubeClient != nil && karmadaKubeClient.CoreV1().RESTClient().GetRateLimiter() != nil {
-		ratelimiter.RegisterMetricAndTrackRateLimiterUsage("cluster_controller", karmadaKubeClient.CoreV1().RESTClient().GetRateLimiter())
+		ratelimiter.RegisterMetricAndTrackRateLimiterUsage("estimator_controller", karmadaKubeClient.CoreV1().RESTClient().GetRateLimiter())
 	}
 
 	ctrl := &EstimatorController{
@@ -127,8 +127,8 @@ func (ctrl *EstimatorController) Run(ctx context.Context, workers int) {
 
 	defer ctrl.queue.ShutDown()
 
-	klog.Infof("Starting cluster controller")
-	defer klog.Infof("Shutting down cluster controller")
+	klog.Infof("Starting estimator controller")
+	defer klog.Infof("Shutting down estimator controller")
 
 	if !cache.WaitForNamedCacheSync("estimator", ctx.Done(), ctrl.clustersSynced, ctrl.fireflyKarmadaSynced) {
 		return
@@ -243,7 +243,7 @@ func (ctrl *EstimatorController) syncCluster(ctx context.Context, key string) er
 
 	klog.InfoS("Syncing estimator", "cluster", cluster.Name)
 
-	if err := ctrl.EnsureEstimatorKubecinfigSecret(ctx, karmada, cluster); err != nil {
+	if err := ctrl.EnsureEstimatorKubeconfigSecret(ctx, karmada, cluster); err != nil {
 		return err
 	}
 

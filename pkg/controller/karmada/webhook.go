@@ -14,6 +14,8 @@ import (
 	"sigs.k8s.io/yaml"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
+	"github.com/carlory/firefly/pkg/constants"
+	"github.com/carlory/firefly/pkg/util"
 )
 
 func mutatingConfig(caBundle string, karmada *installv1alpha1.Karmada) string {
@@ -79,7 +81,7 @@ webhooks:
     failurePolicy: Fail
     sideEffects: None
     admissionReviewVersions: ["v1"]
-    timeoutSeconds: 3`, karmada.Namespace, caBundle, ComponentName(KarmadaComponentWebhook, karmada.Name))
+    timeoutSeconds: 3`, karmada.Namespace, caBundle, util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name))
 }
 
 func validatingConfig(caBundle string, karmada *installv1alpha1.Karmada) string {
@@ -159,7 +161,7 @@ webhooks:
     failurePolicy: Fail
     sideEffects: None
     admissionReviewVersions: ["v1"]
-    timeoutSeconds: 3`, karmada.Namespace, caBundle, ComponentName(KarmadaComponentWebhook, karmada.Name))
+    timeoutSeconds: 3`, karmada.Namespace, caBundle, util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name))
 }
 
 func createValidatingWebhookConfiguration(c kubernetes.Interface, staticYaml string) error {

@@ -204,8 +204,9 @@ func Run(c *config.CompletedConfig, stopCh <-chan struct{}) error {
 		}
 
 		controllerContext.KarmadaKubeInformerFactory.Start(stopCh)
-		controllerContext.FireflyInformerFactory.Start(stopCh)
 		controllerContext.KarmadaInformerFactory.Start(stopCh)
+		controllerContext.FireflyKubeInformerFactory.Start(stopCh)
+		controllerContext.FireflyInformerFactory.Start(stopCh)
 		controllerContext.ObjectOrMetadataInformerFactory.Start(stopCh)
 		close(controllerContext.InformersStarted)
 
@@ -302,7 +303,7 @@ type ControllerContext struct {
 	KarmadaInformerFactory karmadainformers.SharedInformerFactory
 
 	// FireflyKubeInformerFactory gives access to firefly informers for the controller.
-	FireflyKubeInformerFactory fireflyinformers.SharedInformerFactory
+	FireflyKubeInformerFactory informers.SharedInformerFactory
 
 	// FireflyInformerFactory gives access to firefly informers for the controller.
 	FireflyInformerFactory fireflyinformers.SharedInformerFactory
@@ -369,7 +370,8 @@ var ControllersDisabledByDefault = sets.NewString()
 // paired to their InitFunc.  This allows for structured downstream composition and subdivision.
 func NewControllerInitializers() map[string]InitFunc {
 	controllers := map[string]InitFunc{}
-	controllers["estimator"] = startwEstimatorController
+	controllers["estimator"] = startEstimatorController
+	controllers["node"] = startNodeController
 	return controllers
 }
 
@@ -422,13 +424,15 @@ func CreateControllerContext(s *config.CompletedConfig, karmadaClientBuilder, fi
 		return ControllerContext{}, fmt.Errorf("failed to wait for apiserver being healthy: %v", err)
 	}
 
+	fireflyKubeClient := fireflyKubeClientBuilder.ClientOrDie("firefly-kube-shared-informers")
+	fireflyKubeSharedInformers := informers.NewSharedInformerFactory(fireflyKubeClient, ResyncPeriod(s)())
+
 	fireflyClientConfig := fireflyKubeClientBuilder.ConfigOrDie("firefly-shared-informers")
 	fireflyClient := fireflyversioned.NewForConfigOrDie(fireflyClientConfig)
 	fireflySharedInformers := fireflyinformers.NewFilteredSharedInformerFactory(fireflyClient, ResyncPeriod(s)(), s.EstimatorNamespace, nil)
 
 	// If apiserver is not running we should wait for some time and fail only then. This is particularly
 	// important when we start apiserver and controller manager at the same time.
-	fireflyKubeClient := fireflyKubeClientBuilder.ClientOrDie("firefly-shared-informers")
 	if err := genericcontrollermanager.WaitForAPIServer(fireflyKubeClient, 10*time.Second); err != nil {
 		return ControllerContext{}, fmt.Errorf("failed to wait for apiserver being healthy: %v", err)
 	}
@@ -451,6 +455,7 @@ func CreateControllerContext(s *config.CompletedConfig, karmadaClientBuilder, fi
 		FireflyClientBuilder:            fireflyKubeClientBuilder,
 		KarmadaKubeInformerFactory:      karmadaKubeSharedInformers,
 		KarmadaInformerFactory:          karmadaSharedInformers,
+		FireflyKubeInformerFactory:      fireflyKubeSharedInformers,
 		FireflyInformerFactory:          fireflySharedInformers,
 		ObjectOrMetadataInformerFactory: informerfactory.NewInformerFactory(karmadaKubeSharedInformers, metadataInformers),
 		ComponentConfig:                 s.ComponentConfig,

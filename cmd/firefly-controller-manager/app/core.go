@@ -28,6 +28,7 @@ import (
 func startKarmadaController(ctx context.Context, controllerContext ControllerContext) (controller.Interface, bool, error) {
 	ctrl, err := karmada.NewKarmadaController(
 		controllerContext.ClientBuilder.ClientOrDie("firefly-karmada-controller"),
+		controllerContext.ClientBuilder.FireflyClientOrDie("firefly-karmada-controller"),
 		controllerContext.FireflyInformerFactory.Install().V1alpha1().Karmadas(),
 	)
 	if err != nil {

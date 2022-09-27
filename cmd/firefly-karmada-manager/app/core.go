@@ -23,9 +23,10 @@ import (
 	"k8s.io/controller-manager/controller"
 
 	"github.com/carlory/firefly/pkg/karmada/controller/estimator"
+	"github.com/carlory/firefly/pkg/karmada/controller/node"
 )
 
-func startwEstimatorController(ctx context.Context, controllerContext ControllerContext) (controller.Interface, bool, error) {
+func startEstimatorController(ctx context.Context, controllerContext ControllerContext) (controller.Interface, bool, error) {
 	ctrl, err := estimator.NewEstimatorController(
 		controllerContext.KarmadaClientBuilder.ClientOrDie("firefly-estimator-controller"),
 		controllerContext.KarmadaInformerFactory.Cluster().V1alpha1().Clusters(),
@@ -36,6 +37,19 @@ func startwEstimatorController(ctx context.Context, controllerContext Controller
 	)
 	if err != nil {
 		return nil, true, fmt.Errorf("failed to start the estimator controller: %v", err)
+	}
+	go ctrl.Run(ctx, 1)
+	return nil, true, nil
+}
+
+func startNodeController(ctx context.Context, controllerContext ControllerContext) (controller.Interface, bool, error) {
+	ctrl, err := node.NewNodeController(
+		controllerContext.KarmadaClientBuilder.ClientOrDie("firefly-node-controller"),
+		controllerContext.FireflyKubeInformerFactory.Core().V1().Nodes(),
+		controllerContext.KarmadaKubeInformerFactory.Core().V1().Nodes(),
+	)
+	if err != nil {
+		return nil, true, fmt.Errorf("failed to start the node controller: %v", err)
 	}
 	go ctrl.Run(ctx, 1)
 	return nil, true, nil

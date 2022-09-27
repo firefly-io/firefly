@@ -17,6 +17,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
+	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
 	"github.com/carlory/firefly/pkg/util/certs"
 )
@@ -37,12 +38,12 @@ func (ctrl *KarmadaController) genCerts(karmada *installv1alpha1.Karmada, karmad
 
 	var etcdServerCertDNS = []string{
 		"localhost",
-		fmt.Sprintf("%s.%s.svc", ComponentName(KarmadaComponentEtcd, karmada.Name), karmada.Namespace),
-		fmt.Sprintf("%s.%s.svc.%s", ComponentName(KarmadaComponentEtcd, karmada.Name), karmada.Namespace, karmada.Spec.Networking.DNSDomain),
+		fmt.Sprintf("%s.%s.svc", util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name), karmada.Namespace),
+		fmt.Sprintf("%s.%s.svc.%s", util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name), karmada.Namespace, karmada.Spec.Networking.DNSDomain),
 	}
 	for number := int32(0); number < 1; number++ {
-		etcdServerCertDNS = append(etcdServerCertDNS, fmt.Sprintf("%s-%v.%s.%s.svc", ComponentName(KarmadaComponentEtcd, karmada.Name), number, ComponentName(KarmadaComponentEtcd, karmada.Name), karmada.Namespace))
-		etcdServerCertDNS = append(etcdServerCertDNS, fmt.Sprintf("%s-%v.%s.%s.svc.%s", ComponentName(KarmadaComponentEtcd, karmada.Name), number, ComponentName(KarmadaComponentEtcd, karmada.Name), karmada.Namespace, karmada.Spec.Networking.DNSDomain))
+		etcdServerCertDNS = append(etcdServerCertDNS, fmt.Sprintf("%s-%v.%s.%s.svc", util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name), number, util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name), karmada.Namespace))
+		etcdServerCertDNS = append(etcdServerCertDNS, fmt.Sprintf("%s-%v.%s.%s.svc.%s", util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name), number, util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name), karmada.Namespace, karmada.Spec.Networking.DNSDomain))
 	}
 
 	etcdServerAltNames := certutil.AltNames{
@@ -57,14 +58,14 @@ func (ctrl *KarmadaController) genCerts(karmada *installv1alpha1.Karmada, karmad
 		"kubernetes",
 		"kubernetes.default",
 		"kubernetes.default.svc",
-		ComponentName(KarmadaComponentKubeAPIServer, karmada.Name),
-		ComponentName(KarmadaComponentWebhook, karmada.Name),
-		ComponentName(KarmadaComponentAggregratedAPIServer, karmada.Name),
-		fmt.Sprintf("%s.%s.svc", ComponentName(KarmadaComponentKubeAPIServer, karmada.Name), karmada.Namespace),
-		fmt.Sprintf("%s.%s.svc.%s", ComponentName(KarmadaComponentKubeAPIServer, karmada.Name), karmada.Namespace, karmada.Spec.Networking.DNSDomain),
-		fmt.Sprintf("%s.%s.svc.%s", ComponentName(KarmadaComponentWebhook, karmada.Name), karmada.Namespace, karmada.Spec.Networking.DNSDomain),
-		fmt.Sprintf("%s.%s.svc", ComponentName(KarmadaComponentWebhook, karmada.Name), karmada.Namespace),
-		fmt.Sprintf("%s.%s.svc.%s", ComponentName(KarmadaComponentAggregratedAPIServer, karmada.Name), karmada.Namespace, karmada.Spec.Networking.DNSDomain),
+		util.ComponentName(constants.KarmadaComponentKubeAPIServer, karmada.Name),
+		util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name),
+		util.ComponentName(constants.KarmadaComponentAggregratedAPIServer, karmada.Name),
+		fmt.Sprintf("%s.%s.svc", util.ComponentName(constants.KarmadaComponentKubeAPIServer, karmada.Name), karmada.Namespace),
+		fmt.Sprintf("%s.%s.svc.%s", util.ComponentName(constants.KarmadaComponentKubeAPIServer, karmada.Name), karmada.Namespace, karmada.Spec.Networking.DNSDomain),
+		fmt.Sprintf("%s.%s.svc.%s", util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name), karmada.Namespace, karmada.Spec.Networking.DNSDomain),
+		fmt.Sprintf("%s.%s.svc", util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name), karmada.Namespace),
+		fmt.Sprintf("%s.%s.svc.%s", util.ComponentName(constants.KarmadaComponentAggregratedAPIServer, karmada.Name), karmada.Namespace, karmada.Spec.Networking.DNSDomain),
 		fmt.Sprintf("*.%s.svc.%s", karmada.Namespace, karmada.Spec.Networking.DNSDomain),
 		fmt.Sprintf("*.%s.svc", karmada.Namespace),
 	}
@@ -101,7 +102,7 @@ func (ctrl *KarmadaController) genCerts(karmada *installv1alpha1.Karmada, karmad
 	}
 
 	// Create kubeconfig Secret
-	karmadaServerURL := fmt.Sprintf("https://%s.%s.svc.%s:%v", ComponentName(KarmadaComponentKubeAPIServer, karmada.Name), karmada.Namespace, karmada.Spec.Networking.DNSDomain, 5443)
+	karmadaServerURL := fmt.Sprintf("https://%s.%s.svc.%s:%v", util.ComponentName(constants.KarmadaComponentKubeAPIServer, karmada.Name), karmada.Namespace, karmada.Spec.Networking.DNSDomain, 5443)
 	config := certs.CreateWithCerts(karmadaServerURL, "karmada-admin", "karmada-admin", data["ca.crt"], data["karmada.key"], data["karmada.crt"])
 	configBytes, err := clientcmd.Write(*config)
 	if err != nil {
@@ -122,7 +123,7 @@ func (ctrl *KarmadaController) genCerts(karmada *installv1alpha1.Karmada, karmad
 		"etcd-server.crt": string(data["etcd-server.crt"]),
 		"etcd-server.key": string(data["etcd-server.key"]),
 	}
-	etcdSecret := SecretFromSpec(karmada.Namespace, fmt.Sprintf("%s-cert", ComponentName(KarmadaComponentEtcd, karmada.Name)), corev1.SecretTypeOpaque, etcdCert)
+	etcdSecret := SecretFromSpec(karmada.Namespace, fmt.Sprintf("%s-cert", util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name)), corev1.SecretTypeOpaque, etcdCert)
 	controllerutil.SetOwnerReference(karmada, etcdSecret, scheme.Scheme)
 	_, err = ctrl.client.CoreV1().Secrets(karmada.Namespace).Create(context.TODO(), etcdSecret, metav1.CreateOptions{})
 	if err != nil && !errors.IsAlreadyExists(err) {
@@ -134,7 +135,7 @@ func (ctrl *KarmadaController) genCerts(karmada *installv1alpha1.Karmada, karmad
 		karmadaCert[fmt.Sprintf("%s.crt", v)] = string(data[fmt.Sprintf("%s.crt", v)])
 		karmadaCert[fmt.Sprintf("%s.key", v)] = string(data[fmt.Sprintf("%s.key", v)])
 	}
-	karmadaSecret := SecretFromSpec(karmada.Namespace, fmt.Sprintf("%s-cert", ComponentName("karmada", karmada.Name)), corev1.SecretTypeOpaque, karmadaCert)
+	karmadaSecret := SecretFromSpec(karmada.Namespace, fmt.Sprintf("%s-cert", util.ComponentName("karmada", karmada.Name)), corev1.SecretTypeOpaque, karmadaCert)
 	controllerutil.SetOwnerReference(karmada, karmadaSecret, scheme.Scheme)
 	_, err = ctrl.client.CoreV1().Secrets(karmada.Namespace).Create(context.TODO(), karmadaSecret, metav1.CreateOptions{})
 	if err != nil && !errors.IsAlreadyExists(err) {
@@ -144,7 +145,7 @@ func (ctrl *KarmadaController) genCerts(karmada *installv1alpha1.Karmada, karmad
 		"tls.crt": string(data["karmada.crt"]),
 		"tls.key": string(data["karmada.key"]),
 	}
-	karmadaWebhookSecret := SecretFromSpec(karmada.Namespace, fmt.Sprintf("%s-cert", ComponentName(KarmadaComponentWebhook, karmada.Name)), corev1.SecretTypeOpaque, karmadaWebhookCert)
+	karmadaWebhookSecret := SecretFromSpec(karmada.Namespace, fmt.Sprintf("%s-cert", util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name)), corev1.SecretTypeOpaque, karmadaWebhookCert)
 	controllerutil.SetOwnerReference(karmada, karmadaWebhookSecret, scheme.Scheme)
 	_, err = ctrl.client.CoreV1().Secrets(karmada.Namespace).Create(context.TODO(), karmadaWebhookSecret, metav1.CreateOptions{})
 	if err != nil && !errors.IsAlreadyExists(err) {

@@ -10,10 +10,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
+	"github.com/carlory/firefly/pkg/constants"
+	"github.com/carlory/firefly/pkg/util"
 )
 
 func karmadaAggregatedAPIServerService(karmada *installv1alpha1.Karmada) *corev1.Service {
-	componentName := ComponentName(KarmadaComponentAggregratedAPIServer, karmada.Name)
+	componentName := util.ComponentName(constants.KarmadaComponentAggregratedAPIServer, karmada.Name)
 	return &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -43,7 +45,7 @@ func karmadaAggregatedAPIServerService(karmada *installv1alpha1.Karmada) *corev1
 func makeKarmadaAggregatedAPIServerDeployment(karmada *installv1alpha1.Karmada) *appsv1.Deployment {
 	repository := karmada.Spec.ImageRepository
 	version := karmada.Spec.KarmadaVersion
-	componentName := ComponentName(KarmadaComponentAggregratedAPIServer, karmada.Name)
+	componentName := util.ComponentName(constants.KarmadaComponentAggregratedAPIServer, karmada.Name)
 	apiServer := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
@@ -65,7 +67,7 @@ func makeKarmadaAggregatedAPIServerDeployment(karmada *installv1alpha1.Karmada) 
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-aggregated-apiserver",
-							Image:           ComponentImageName(repository, KarmadaComponentAggregratedAPIServer, version),
+							Image:           util.ComponentImageName(repository, constants.KarmadaComponentAggregratedAPIServer, version),
 							ImagePullPolicy: "IfNotPresent",
 							Command: []string{
 								"/bin/karmada-aggregated-apiserver",
@@ -75,7 +77,7 @@ func makeKarmadaAggregatedAPIServerDeployment(karmada *installv1alpha1.Karmada) 
 								"--etcd-cafile=/etc/kubernetes/pki/etcd-ca.crt",
 								"--etcd-certfile=/etc/kubernetes/pki/etcd-client.crt",
 								"--etcd-keyfile=/etc/kubernetes/pki/etcd-client.key",
-								fmt.Sprintf("--etcd-servers=https://%s.%s.svc:2379", ComponentName(KarmadaComponentEtcd, karmada.Name), karmada.Namespace),
+								fmt.Sprintf("--etcd-servers=https://%s.%s.svc:2379", util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name), karmada.Namespace),
 								"--audit-log-path=-",
 								"--feature-gates=APIPriorityAndFairness=false",
 								"--audit-log-maxage=0",
@@ -135,7 +137,7 @@ func makeKarmadaAggregatedAPIServerDeployment(karmada *installv1alpha1.Karmada) 
 							Name: "k8s-certs",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: fmt.Sprintf("%s-cert", ComponentName("karmada", karmada.Name)),
+									SecretName: fmt.Sprintf("%s-cert", util.ComponentName("karmada", karmada.Name)),
 								},
 							},
 						},
@@ -159,7 +161,7 @@ func makeKarmadaKubeControllerManagerDeployment(karmada *installv1alpha1.Karmada
 	repository := karmada.Spec.ImageRepository
 	version := karmada.Spec.KubernetesVersion
 
-	componentName := ComponentName(KarmadaComponentKubeControllerManager, karmada.Name)
+	componentName := util.ComponentName(constants.KarmadaComponentKubeControllerManager, karmada.Name)
 	apiServer := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
@@ -181,7 +183,7 @@ func makeKarmadaKubeControllerManagerDeployment(karmada *installv1alpha1.Karmada
 					Containers: []corev1.Container{
 						{
 							Name:            "kube-controller-manager",
-							Image:           ComponentImageName(repository, "kube-controller-manager", version),
+							Image:           util.ComponentImageName(repository, "kube-controller-manager", version),
 							ImagePullPolicy: "IfNotPresent",
 							Command: []string{
 								"kube-controller-manager",
@@ -224,7 +226,7 @@ func makeKarmadaKubeControllerManagerDeployment(karmada *installv1alpha1.Karmada
 							Name: "k8s-certs",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: fmt.Sprintf("%s-cert", ComponentName("karmada", karmada.Name)),
+									SecretName: fmt.Sprintf("%s-cert", util.ComponentName("karmada", karmada.Name)),
 								},
 							},
 						},
@@ -248,7 +250,7 @@ func makeKarmadaSchedulerDeployment(karmada *installv1alpha1.Karmada) *appsv1.De
 	repository := karmada.Spec.ImageRepository
 	version := karmada.Spec.KarmadaVersion
 
-	componentName := ComponentName(KarmadaComponentScheduler, karmada.Name)
+	componentName := util.ComponentName(constants.KarmadaComponentScheduler, karmada.Name)
 	apiServer := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
@@ -270,7 +272,7 @@ func makeKarmadaSchedulerDeployment(karmada *installv1alpha1.Karmada) *appsv1.De
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-scheduler",
-							Image:           ComponentImageName(repository, KarmadaComponentScheduler, version),
+							Image:           util.ComponentImageName(repository, constants.KarmadaComponentScheduler, version),
 							ImagePullPolicy: "IfNotPresent",
 							Command: []string{
 								"/bin/karmada-scheduler",
@@ -311,7 +313,7 @@ func makeKarmadaControllerManagerDeployment(karmada *installv1alpha1.Karmada) *a
 	repository := karmada.Spec.ImageRepository
 	version := karmada.Spec.KarmadaVersion
 
-	componentName := ComponentName(KarmadaComponentControllerManager, karmada.Name)
+	componentName := util.ComponentName(constants.KarmadaComponentControllerManager, karmada.Name)
 	apiServer := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
@@ -333,7 +335,7 @@ func makeKarmadaControllerManagerDeployment(karmada *installv1alpha1.Karmada) *a
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-controller-manager",
-							Image:           ComponentImageName(repository, KarmadaComponentControllerManager, version),
+							Image:           util.ComponentImageName(repository, constants.KarmadaComponentControllerManager, version),
 							ImagePullPolicy: "IfNotPresent",
 							Command: []string{
 								"/bin/karmada-controller-manager",
@@ -371,7 +373,7 @@ func makeKarmadaControllerManagerDeployment(karmada *installv1alpha1.Karmada) *a
 }
 
 func karmadaWebhookService(karmada *installv1alpha1.Karmada) *corev1.Service {
-	componentName := ComponentName(KarmadaComponentWebhook, karmada.Name)
+	componentName := util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name)
 	return &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -402,7 +404,7 @@ func makeKarmadaWebhookDeployment(karmada *installv1alpha1.Karmada) *appsv1.Depl
 	repository := karmada.Spec.ImageRepository
 	version := karmada.Spec.KarmadaVersion
 
-	componentName := ComponentName(KarmadaComponentWebhook, karmada.Name)
+	componentName := util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name)
 	apiServer := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
@@ -424,7 +426,7 @@ func makeKarmadaWebhookDeployment(karmada *installv1alpha1.Karmada) *appsv1.Depl
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-webhook",
-							Image:           ComponentImageName(repository, KarmadaComponentWebhook, version),
+							Image:           util.ComponentImageName(repository, constants.KarmadaComponentWebhook, version),
 							ImagePullPolicy: "IfNotPresent",
 							Command: []string{
 								"/bin/karmada-webhook",

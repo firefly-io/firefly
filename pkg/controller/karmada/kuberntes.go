@@ -9,10 +9,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
+	"github.com/carlory/firefly/pkg/constants"
+	"github.com/carlory/firefly/pkg/util"
 )
 
 func makeKarmadaAPIServerService(karmada *installv1alpha1.Karmada) *corev1.Service {
-	componentName := ComponentName(KarmadaComponentKubeAPIServer, karmada.Name)
+	componentName := util.ComponentName(constants.KarmadaComponentKubeAPIServer, karmada.Name)
 	return &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -44,7 +46,7 @@ func makeKarmadaAPIServerDeployment(karmada *installv1alpha1.Karmada) *appsv1.De
 	repository := karmada.Spec.ImageRepository
 	version := karmada.Spec.KubernetesVersion
 
-	componentName := ComponentName(KarmadaComponentKubeAPIServer, karmada.Name)
+	componentName := util.ComponentName(constants.KarmadaComponentKubeAPIServer, karmada.Name)
 	apiServer := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
@@ -66,7 +68,7 @@ func makeKarmadaAPIServerDeployment(karmada *installv1alpha1.Karmada) *appsv1.De
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-apiserver",
-							Image:           ComponentImageName(repository, "kube-apiserver", version),
+							Image:           util.ComponentImageName(repository, "kube-apiserver", version),
 							ImagePullPolicy: "IfNotPresent",
 							Command: []string{
 								"kube-apiserver",
@@ -78,7 +80,7 @@ func makeKarmadaAPIServerDeployment(karmada *installv1alpha1.Karmada) *appsv1.De
 								"--etcd-cafile=/etc/kubernetes/pki/etcd-ca.crt",
 								"--etcd-certfile=/etc/kubernetes/pki/etcd-client.crt",
 								"--etcd-keyfile=/etc/kubernetes/pki/etcd-client.key",
-								fmt.Sprintf("--etcd-servers=https://%s.%s.svc:2379", ComponentName(KarmadaComponentEtcd, karmada.Name), karmada.Namespace),
+								fmt.Sprintf("--etcd-servers=https://%s.%s.svc:2379", util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name), karmada.Namespace),
 								"--bind-address=0.0.0.0",
 								"--insecure-port=0",
 								"--kubelet-client-certificate=/etc/kubernetes/pki/karmada.crt",
@@ -148,7 +150,7 @@ func makeKarmadaAPIServerDeployment(karmada *installv1alpha1.Karmada) *appsv1.De
 							Name: "k8s-certs",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: fmt.Sprintf("%s-cert", ComponentName("karmada", karmada.Name)),
+									SecretName: fmt.Sprintf("%s-cert", util.ComponentName("karmada", karmada.Name)),
 								},
 							},
 						},

@@ -23,6 +23,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
@@ -33,10 +34,15 @@ import (
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/component-base/metrics/prometheus/ratelimiter"
 	"k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
+	"github.com/carlory/firefly/pkg/constants"
+	fireflyclient "github.com/carlory/firefly/pkg/generated/clientset/versioned"
 	installinformers "github.com/carlory/firefly/pkg/generated/informers/externalversions/install/v1alpha1"
 	installlisters "github.com/carlory/firefly/pkg/generated/listers/install/v1alpha1"
+	"github.com/carlory/firefly/pkg/util"
 )
 
 const (
@@ -46,11 +52,15 @@ const (
 	//
 	// 5ms, 10ms, 20ms, 40ms, 80ms, 160ms, 320ms, 640ms, 1.3s, 2.6s, 5.1s, 10.2s, 20.4s, 41s, 82s
 	maxRetries = 15
+
+	// name of the karmada controller finalizer
+	KarmadaControllerFinalizerName = "karmada.install.firefly.io/finalizer"
 )
 
 // NewKarmadaController returns a new *Controller.
 func NewKarmadaController(
 	client clientset.Interface,
+	fireflyClient fireflyclient.Interface,
 	karmadaInformer installinformers.KarmadaInformer) (*KarmadaController, error) {
 	broadcaster := record.NewBroadcaster()
 	recorder := broadcaster.NewRecorder(scheme.Scheme, v1.EventSource{Component: "karmada-controller"})
@@ -61,6 +71,7 @@ func NewKarmadaController(
 
 	ctrl := &KarmadaController{
 		client:           client,
+		fireflyClient:    fireflyClient,
 		karmadasLister:   karmadaInformer.Lister(),
 		karmadasSynced:   karmadaInformer.Informer().HasSynced,
 		queue:            workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "karmada"),
@@ -80,6 +91,7 @@ func NewKarmadaController(
 
 type KarmadaController struct {
 	client           clientset.Interface
+	fireflyClient    fireflyclient.Interface
 	eventBroadcaster record.EventBroadcaster
 	eventRecorder    record.EventRecorder
 
@@ -230,21 +242,60 @@ func (ctrl *KarmadaController) syncKarmada(ctx context.Context, key string) erro
 
 	// Deep-copy otherwise we are mutating our cache.
 	// TODO: Deep-copy only when needed.
-	k := karmada.DeepCopy()
+	karmada = karmada.DeepCopy()
 
-	klog.InfoS("Syncing karmada", "karmada", klog.KObj(k))
+	// examine DeletionTimestamp to determine if object is under deletion
+	if karmada.DeletionTimestamp.IsZero() {
+		// The object is not being deleted, so if it does not have our finalizer,
+		// then lets add the finalizer and update the object. This is equivalent
+		// registering our finalizer.
+		if !controllerutil.ContainsFinalizer(karmada, KarmadaControllerFinalizerName) {
+			controllerutil.AddFinalizer(karmada, KarmadaControllerFinalizerName)
+			karmada, err = ctrl.fireflyClient.InstallV1alpha1().Karmadas(karmada.Namespace).Update(ctx, karmada, metav1.UpdateOptions{})
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		// The object is being deleted
+		if controllerutil.ContainsFinalizer(karmada, KarmadaControllerFinalizerName) {
+			// our finalizer is present, so lets handle any external dependency
+			if err := ctrl.deleteUnableGCResources(karmada); err != nil {
+				// if fail to delete the external dependency here, return with error
+				// so that it can be retried
+				return err
+			}
 
-	if err := ctrl.genCerts(k, nil); err != nil {
+			// remove our finalizer from the list and update it.
+			controllerutil.RemoveFinalizer(karmada, KarmadaControllerFinalizerName)
+			_, err := ctrl.fireflyClient.InstallV1alpha1().Karmadas(karmada.Namespace).Update(ctx, karmada, metav1.UpdateOptions{})
+			if err != nil {
+				return err
+			}
+			// Stop reconciliation as the item is being deleted
+			return nil
+		}
+	}
+
+	klog.InfoS("Syncing karmada", "karmada", klog.KObj(karmada))
+
+	if err := ctrl.genCerts(karmada, nil); err != nil {
 		klog.ErrorS(err, "Failed to generate certs", "namespace", namespace)
 		return err
 	}
 
-	if err := ctrl.initKarmadaAPIServer(k); err != nil {
+	if err := ctrl.initKarmadaAPIServer(karmada); err != nil {
 		return err
 	}
 
-	if err := ctrl.initKarmadaComponent(k); err != nil {
+	if err := ctrl.initKarmadaComponent(karmada); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (ctrl *KarmadaController) deleteUnableGCResources(karmada *installv1alpha1.Karmada) error {
+	bindingName := util.ComponentName(constants.FireflyComponentKarmadaManager, karmada.Name)
+	err := ctrl.client.RbacV1beta1().ClusterRoleBindings().Delete(context.Background(), bindingName, metav1.DeleteOptions{})
+	return client.IgnoreNotFound(err)
 }
