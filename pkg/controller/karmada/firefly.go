@@ -134,7 +134,7 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerDeployment(karmada *in
 					Containers: []corev1.Container{
 						{
 							Name:            componentName,
-							Image:           util.ComponentImageName(repository, constants.FireflyComponentKarmadaManager, "v1.2.0"),
+							Image:           util.ComponentImageName(repository, constants.FireflyComponentKarmadaManager, "latest"),
 							ImagePullPolicy: corev1.PullAlways,
 							Command: []string{
 								"/bin/firefly-karmada-manager",
