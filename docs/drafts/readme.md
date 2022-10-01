@@ -14,4 +14,4 @@ operators.firefly.io
 
 基于 karmada 开发的crd
 
-Karmada 集成 cert-manager 
+Karmada 集成 cert-manager

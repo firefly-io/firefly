@@ -2,6 +2,15 @@
 
 // todo: What's Firefly?
 
+## Features
+
+- Karmada Lifecycle Management
+
+  Provide a centralized control plane to manage multiple Karmada instances, and will support integrate with more existing kubernetes tool chain by default, like Clusterpedia in the future. 
+- Self Inspection
+
+  Provide a mechanism that allows viewing the status of karmada own conponents and correponding components of the host cluster only through karmada's API.
+
 ## Architecture
 
 // TBD
