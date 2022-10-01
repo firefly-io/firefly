@@ -85,6 +85,7 @@ func makeKarmadaAggregatedAPIServerDeployment(karmada *installv1alpha1.Karmada) 
 								"--tls-cert-file=/etc/kubernetes/pki/apiserver.crt",
 								"--tls-private-key-file=/etc/kubernetes/pki/apiserver.key",
 							},
+							Resources: karmada.Spec.APIServer.KarmadaAggregratedAPIServer.Resources,
 							LivenessProbe: &corev1.Probe{
 								FailureThreshold: 8,
 								ProbeHandler: corev1.ProbeHandler{
@@ -207,6 +208,7 @@ func makeKarmadaKubeControllerManagerDeployment(karmada *installv1alpha1.Karmada
 								"--use-service-account-credentials=true",
 								"--v=4",
 							},
+							Resources: karmada.Spec.ControllerManager.KubeControllerManager.Resources,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "k8s-certs",
@@ -283,6 +285,7 @@ func makeKarmadaSchedulerDeployment(karmada *installv1alpha1.Karmada) *appsv1.De
 								"--enable-scheduler-estimator=false",
 								"--v=4",
 							},
+							Resources: karmada.Spec.Scheduler.KarmadaScheduler.Resources,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "kubeconfig",
@@ -346,6 +349,7 @@ func makeKarmadaControllerManagerDeployment(karmada *installv1alpha1.Karmada) *a
 								"--feature-gates=PropagateDeps=true",
 								"--v=4",
 							},
+							Resources: karmada.Spec.ControllerManager.KarmadaControllerManager.Resources,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "kubeconfig",
@@ -441,6 +445,7 @@ func makeKarmadaWebhookDeployment(karmada *installv1alpha1.Karmada) *appsv1.Depl
 									ContainerPort: 8443,
 								},
 							},
+							Resources: karmada.Spec.Webhook.KarmadaWebhook.Resources,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "kubeconfig",

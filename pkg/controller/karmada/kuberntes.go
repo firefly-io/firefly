@@ -103,6 +103,7 @@ func makeKarmadaAPIServerDeployment(karmada *installv1alpha1.Karmada) *appsv1.De
 								"--tls-cert-file=/etc/kubernetes/pki/apiserver.crt",
 								"--tls-private-key-file=/etc/kubernetes/pki/apiserver.key",
 							},
+							Resources: karmada.Spec.APIServer.KubeAPIServer.Resources,
 							LivenessProbe: &corev1.Probe{
 								FailureThreshold: 8,
 								ProbeHandler: corev1.ProbeHandler{
