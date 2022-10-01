@@ -2,6 +2,7 @@ package karmada
 
 import (
 	"fmt"
+	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -12,6 +13,7 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
+	maputil "github.com/carlory/firefly/pkg/util/map"
 )
 
 func (ctrl *KarmadaController) EnsureKarmadaControllerManager(karmada *installv1alpha1.Karmada) error {
@@ -22,6 +24,21 @@ func (ctrl *KarmadaController) EnsureKarmadaControllerManagerDeployment(karmada 
 	componentName := util.ComponentName(constants.KarmadaComponentControllerManager, karmada.Name)
 	repository := karmada.Spec.ImageRepository
 	version := karmada.Spec.KarmadaVersion
+	kcm := karmada.Spec.ControllerManager.KarmadaControllerManager
+
+	defaultArgs := map[string]string{
+		"bind-address":                    "0.0.0.0",
+		"kubeconfig":                      "/etc/kubeconfig",
+		"cluster-status-update-frequency": "10s",
+		"secure-port":                     "10357",
+		"feature-gates":                   "PropagateDeps",
+		"v":                               "4",
+	}
+	if kcm.Controllers != nil {
+		defaultArgs["controllers"] = strings.Join(kcm.Controllers, ",")
+	}
+	computedArgs := maputil.MergeStringMaps(defaultArgs, kcm.ExtraArgs)
+	args := maputil.ConvertToCommandOrArgs(computedArgs)
 
 	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
@@ -46,16 +63,9 @@ func (ctrl *KarmadaController) EnsureKarmadaControllerManagerDeployment(karmada 
 							Name:            "karmada-controller-manager",
 							Image:           util.ComponentImageName(repository, constants.KarmadaComponentControllerManager, version),
 							ImagePullPolicy: "IfNotPresent",
-							Command: []string{
-								"/bin/karmada-controller-manager",
-								"--bind-address=0.0.0.0",
-								"--kubeconfig=/etc/kubeconfig",
-								"--cluster-status-update-frequency=10s",
-								"--secure-port=10357",
-								"--feature-gates=PropagateDeps=true",
-								"--v=4",
-							},
-							Resources: karmada.Spec.ControllerManager.KarmadaControllerManager.Resources,
+							Command:         []string{"/bin/karmada-controller-manager"},
+							Args:            args,
+							Resources:       karmada.Spec.ControllerManager.KarmadaControllerManager.Resources,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "kubeconfig",

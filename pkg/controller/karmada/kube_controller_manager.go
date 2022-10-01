@@ -13,6 +13,7 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
+	maputil "github.com/carlory/firefly/pkg/util/map"
 )
 
 func (ctrl *KarmadaController) EnsureKubeControllerManager(karmada *installv1alpha1.Karmada) error {
@@ -23,6 +24,33 @@ func (ctrl *KarmadaController) EnsureKubeControllerManagerDeployment(karmada *in
 	componentName := util.ComponentName(constants.KarmadaComponentKubeControllerManager, karmada.Name)
 	repository := karmada.Spec.ImageRepository
 	version := karmada.Spec.KubernetesVersion
+	kcm := karmada.Spec.ControllerManager.KubeControllerManager
+
+	defaultArgs := map[string]string{
+		"allocate-node-cidrs":              "true",
+		"authentication-kubeconfig":        "/etc/kubeconfig",
+		"authorization-kubeconfig":         "/etc/kubeconfig",
+		"bind-address":                     "0.0.0.0",
+		"client-ca-file":                   "/etc/kubernetes/pki/ca.crt",
+		"cluster-cidr":                     "10.244.0.0/16",
+		"cluster-name":                     "kubernetes",
+		"cluster-signing-cert-file":        "/etc/kubernetes/pki/ca.crt",
+		"cluster-signing-key-file":         "/etc/kubernetes/pki/ca.key",
+		"kubeconfig":                       "/etc/kubeconfig",
+		"leader-elect":                     "true",
+		"node-cidr-mask-size":              "24",
+		"port":                             "0",
+		"root-ca-file":                     "/etc/kubernetes/pki/ca.crt",
+		"service-account-private-key-file": "/etc/kubernetes/pki/karmada.key",
+		"service-cluster-ip-range":         karmada.Spec.Networking.ServiceSubnet,
+		"use-service-account-credentials":  "true",
+		"v":                                "4",
+	}
+	if kcm.Controllers != nil {
+		defaultArgs["controllers"] = strings.Join(kcm.Controllers, ",")
+	}
+	computedArgs := maputil.MergeStringMaps(defaultArgs, kcm.ExtraArgs)
+	args := maputil.ConvertToCommandOrArgs(computedArgs)
 
 	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
@@ -47,29 +75,9 @@ func (ctrl *KarmadaController) EnsureKubeControllerManagerDeployment(karmada *in
 							Name:            "kube-controller-manager",
 							Image:           util.ComponentImageName(repository, "kube-controller-manager", version),
 							ImagePullPolicy: "IfNotPresent",
-							Command: []string{
-								"kube-controller-manager",
-								"--allocate-node-cidrs=true",
-								"--authentication-kubeconfig=/etc/kubeconfig",
-								"--authorization-kubeconfig=/etc/kubeconfig",
-								"--bind-address=0.0.0.0",
-								"--client-ca-file=/etc/kubernetes/pki/ca.crt",
-								"--cluster-cidr=10.244.0.0/16",
-								"--cluster-name=kubernetes",
-								"--cluster-signing-cert-file=/etc/kubernetes/pki/ca.crt",
-								"--cluster-signing-key-file=/etc/kubernetes/pki/ca.key",
-								fmt.Sprintf("--controllers=%s", strings.Join(karmada.Spec.ControllerManager.KubeControllerManager.Controllers, ",")),
-								"--kubeconfig=/etc/kubeconfig",
-								"--leader-elect=true",
-								"--node-cidr-mask-size=24",
-								"--port=0",
-								"--root-ca-file=/etc/kubernetes/pki/ca.crt",
-								"--service-account-private-key-file=/etc/kubernetes/pki/karmada.key",
-								fmt.Sprintf("--service-cluster-ip-range=%s", karmada.Spec.Networking.ServiceSubnet),
-								"--use-service-account-credentials=true",
-								"--v=4",
-							},
-							Resources: karmada.Spec.ControllerManager.KubeControllerManager.Resources,
+							Command:         []string{"kube-controller-manager"},
+							Args:            args,
+							Resources:       karmada.Spec.ControllerManager.KubeControllerManager.Resources,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "k8s-certs",

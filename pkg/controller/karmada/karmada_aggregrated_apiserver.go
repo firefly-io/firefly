@@ -17,6 +17,7 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
+	maputil "github.com/carlory/firefly/pkg/util/map"
 )
 
 func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServer(karmada *installv1alpha1.Karmada) error {
@@ -68,6 +69,25 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerDeployment(karmad
 	componentName := util.ComponentName(constants.KarmadaComponentAggregratedAPIServer, karmada.Name)
 	repository := karmada.Spec.ImageRepository
 	version := karmada.Spec.KarmadaVersion
+	server := karmada.Spec.APIServer.KarmadaAggregratedAPIServer
+
+	defaultArgs := map[string]string{
+		"kubeconfig":                "/etc/kubeconfig",
+		"authentication-kubeconfig": "/etc/kubeconfig",
+		"authorization-kubeconfig":  "/etc/kubeconfig",
+		"etcd-cafile":               "/etc/kubernetes/pki/etcd-ca.crt",
+		"etcd-certfile":             "/etc/kubernetes/pki/etcd-client.crt",
+		"etcd-keyfile":              "/etc/kubernetes/pki/etcd-client.key",
+		"etcd-servers":              fmt.Sprintf("https://%s.%s.svc:2379", util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name), karmada.Namespace),
+		"audit-log-path":            "-",
+		"feature-gates":             "APIPriorityAndFairness=false",
+		"audit-log-maxage":          "0",
+		"audit-log-maxbackup":       "0",
+		"tls-cert-file":             "/etc/kubernetes/pki/apiserver.crt",
+		"tls-private-key-file":      "/etc/kubernetes/pki/apiserver.key",
+	}
+	computedArgs := maputil.MergeStringMaps(defaultArgs, server.ExtraArgs)
+	args := maputil.ConvertToCommandOrArgs(computedArgs)
 
 	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
@@ -92,23 +112,9 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerDeployment(karmad
 							Name:            "karmada-aggregated-apiserver",
 							Image:           util.ComponentImageName(repository, constants.KarmadaComponentAggregratedAPIServer, version),
 							ImagePullPolicy: "IfNotPresent",
-							Command: []string{
-								"/bin/karmada-aggregated-apiserver",
-								"--kubeconfig=/etc/kubeconfig",
-								"--authentication-kubeconfig=/etc/kubeconfig",
-								"--authorization-kubeconfig=/etc/kubeconfig",
-								"--etcd-cafile=/etc/kubernetes/pki/etcd-ca.crt",
-								"--etcd-certfile=/etc/kubernetes/pki/etcd-client.crt",
-								"--etcd-keyfile=/etc/kubernetes/pki/etcd-client.key",
-								fmt.Sprintf("--etcd-servers=https://%s.%s.svc:2379", util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name), karmada.Namespace),
-								"--audit-log-path=-",
-								"--feature-gates=APIPriorityAndFairness=false",
-								"--audit-log-maxage=0",
-								"--audit-log-maxbackup=0",
-								"--tls-cert-file=/etc/kubernetes/pki/apiserver.crt",
-								"--tls-private-key-file=/etc/kubernetes/pki/apiserver.key",
-							},
-							Resources: karmada.Spec.APIServer.KarmadaAggregratedAPIServer.Resources,
+							Command:         []string{"/bin/karmada-aggregated-apiserver"},
+							Args:            args,
+							Resources:       karmada.Spec.APIServer.KarmadaAggregratedAPIServer.Resources,
 							LivenessProbe: &corev1.Probe{
 								FailureThreshold: 8,
 								ProbeHandler: corev1.ProbeHandler{

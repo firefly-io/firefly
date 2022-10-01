@@ -22,6 +22,7 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
+	maputil "github.com/carlory/firefly/pkg/util/map"
 )
 
 func (ctrl *KarmadaController) EnsureKaramdaWebhook(karmada *installv1alpha1.Karmada) error {
@@ -71,6 +72,17 @@ func (ctrl *KarmadaController) EnsureKaramdaWebhookDeployment(karmada *installv1
 	componentName := util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name)
 	repository := karmada.Spec.ImageRepository
 	version := karmada.Spec.KarmadaVersion
+	webhook := karmada.Spec.Webhook.KarmadaWebhook
+
+	defaultArgs := map[string]string{
+		"bind-address": "0.0.0.0",
+		"kubeconfig":   "/etc/kubeconfig",
+		"secure-port":  "8443",
+		"cert-dir":     "/var/serving-cert",
+		"v":            "4",
+	}
+	computedArgs := maputil.MergeStringMaps(defaultArgs, webhook.ExtraArgs)
+	args := maputil.ConvertToCommandOrArgs(computedArgs)
 
 	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
@@ -95,14 +107,8 @@ func (ctrl *KarmadaController) EnsureKaramdaWebhookDeployment(karmada *installv1
 							Name:            "karmada-webhook",
 							Image:           util.ComponentImageName(repository, constants.KarmadaComponentWebhook, version),
 							ImagePullPolicy: "IfNotPresent",
-							Command: []string{
-								"/bin/karmada-webhook",
-								"--bind-address=0.0.0.0",
-								"--kubeconfig=/etc/kubeconfig",
-								"--secure-port=8443",
-								"--cert-dir=/var/serving-cert",
-								"--v=4",
-							},
+							Command:         []string{"/bin/karmada-webhook"},
+							Args:            args,
 							Ports: []corev1.ContainerPort{
 								{
 									ContainerPort: 8443,

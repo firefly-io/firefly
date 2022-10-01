@@ -15,6 +15,7 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
+	maputil "github.com/carlory/firefly/pkg/util/map"
 )
 
 // EnsureKubeAPIServer ensures the kube-apiserver components exists and returns a kubeclient if it's ready.
@@ -79,6 +80,41 @@ func (ctrl *KarmadaController) EnsureKubeAPIServerDeployment(karmada *installv1a
 	repository := karmada.Spec.ImageRepository
 	version := karmada.Spec.KubernetesVersion
 
+	defaultArgs := map[string]string{
+		"allow-privileged":                   "true",
+		"authorization-mode":                 "Node,RBAC",
+		"client-ca-file":                     "/etc/kubernetes/pki/ca.crt",
+		"enable-admission-plugins":           "NodeRestriction",
+		"enable-bootstrap-token-auth":        "true",
+		"etcd-cafile":                        "/etc/kubernetes/pki/etcd-ca.crt",
+		"etcd-certfile":                      "/etc/kubernetes/pki/etcd-client.crt",
+		"etcd-keyfile":                       "/etc/kubernetes/pki/etcd-client.key",
+		"etcd-servers":                       fmt.Sprintf("https://%s.%s.svc:2379", util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name), karmada.Namespace),
+		"bind-address":                       "0.0.0.0",
+		"insecure-port":                      "0",
+		"kubelet-client-certificate":         "/etc/kubernetes/pki/karmada.crt",
+		"kubelet-client-key":                 "/etc/kubernetes/pki/karmada.key",
+		"kubelet-preferred-address-types":    "InternalIP,ExternalIP,Hostname",
+		"disable-admission-plugins":          "StorageObjectInUseProtection,ServiceAccount",
+		"runtime-config":                     "",
+		"secure-port":                        "5443",
+		"service-account-issuer":             fmt.Sprintf("https://kubernetes.default.svc.%s", karmada.Spec.Networking.DNSDomain),
+		"service-account-key-file":           "/etc/kubernetes/pki/karmada.key",
+		"service-account-signing-key-file":   "/etc/kubernetes/pki/karmada.key",
+		"service-cluster-ip-range":           karmada.Spec.Networking.ServiceSubnet,
+		"proxy-client-cert-file":             "/etc/kubernetes/pki/front-proxy-client.crt",
+		"proxy-client-key-file":              "/etc/kubernetes/pki/front-proxy-client.key",
+		"requestheader-allowed-names":        "front-proxy-client",
+		"requestheader-client-ca-file":       "/etc/kubernetes/pki/front-proxy-ca.crt",
+		"requestheader-extra-headers-prefix": "X-Remote-Extra-",
+		"requestheader-group-headers":        "X-Remote-Group",
+		"requestheader-username-headers":     "X-Remote-User",
+		"tls-cert-file":                      "/etc/kubernetes/pki/apiserver.crt",
+		"tls-private-key-file":               "/etc/kubernetes/pki/apiserver.key",
+	}
+	computedArgs := maputil.MergeStringMaps(defaultArgs, karmada.Spec.APIServer.KubeAPIServer.ExtraArgs)
+	args := maputil.ConvertToCommandOrArgs(computedArgs)
+
 	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
@@ -102,40 +138,9 @@ func (ctrl *KarmadaController) EnsureKubeAPIServerDeployment(karmada *installv1a
 							Name:            "karmada-apiserver",
 							Image:           util.ComponentImageName(repository, "kube-apiserver", version),
 							ImagePullPolicy: "IfNotPresent",
-							Command: []string{
-								"kube-apiserver",
-								"--allow-privileged=true",
-								"--authorization-mode=Node,RBAC",
-								"--client-ca-file=/etc/kubernetes/pki/ca.crt",
-								"--enable-admission-plugins=NodeRestriction",
-								"--enable-bootstrap-token-auth=true",
-								"--etcd-cafile=/etc/kubernetes/pki/etcd-ca.crt",
-								"--etcd-certfile=/etc/kubernetes/pki/etcd-client.crt",
-								"--etcd-keyfile=/etc/kubernetes/pki/etcd-client.key",
-								fmt.Sprintf("--etcd-servers=https://%s.%s.svc:2379", util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name), karmada.Namespace),
-								"--bind-address=0.0.0.0",
-								"--insecure-port=0",
-								"--kubelet-client-certificate=/etc/kubernetes/pki/karmada.crt",
-								"--kubelet-client-key=/etc/kubernetes/pki/karmada.key",
-								"--kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname",
-								"--disable-admission-plugins=StorageObjectInUseProtection,ServiceAccount",
-								"--runtime-config=",
-								"--secure-port=5443",
-								fmt.Sprintf("--service-account-issuer=https://kubernetes.default.svc.%s", karmada.Spec.Networking.DNSDomain),
-								"--service-account-key-file=/etc/kubernetes/pki/karmada.key",
-								"--service-account-signing-key-file=/etc/kubernetes/pki/karmada.key",
-								"--service-cluster-ip-range=10.96.0.0/12",
-								"--proxy-client-cert-file=/etc/kubernetes/pki/front-proxy-client.crt",
-								"--proxy-client-key-file=/etc/kubernetes/pki/front-proxy-client.key",
-								"--requestheader-allowed-names=front-proxy-client",
-								"--requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt",
-								"--requestheader-extra-headers-prefix=X-Remote-Extra-",
-								"--requestheader-group-headers=X-Remote-Group",
-								"--requestheader-username-headers=X-Remote-User",
-								"--tls-cert-file=/etc/kubernetes/pki/apiserver.crt",
-								"--tls-private-key-file=/etc/kubernetes/pki/apiserver.key",
-							},
-							Resources: karmada.Spec.APIServer.KubeAPIServer.Resources,
+							Command:         []string{"kube-apiserver"},
+							Args:            args,
+							Resources:       karmada.Spec.APIServer.KubeAPIServer.Resources,
 							LivenessProbe: &corev1.Probe{
 								FailureThreshold: 8,
 								ProbeHandler: corev1.ProbeHandler{

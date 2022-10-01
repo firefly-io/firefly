@@ -12,6 +12,7 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
+	maputil "github.com/carlory/firefly/pkg/util/map"
 )
 
 func (ctrl *KarmadaController) EnsureKarmadaScheduler(karmada *installv1alpha1.Karmada) error {
@@ -22,6 +23,18 @@ func (ctrl *KarmadaController) EnsureKarmadaSchedulerDeployment(karmada *install
 	componentName := util.ComponentName(constants.KarmadaComponentScheduler, karmada.Name)
 	repository := karmada.Spec.ImageRepository
 	version := karmada.Spec.KarmadaVersion
+	scheduler := karmada.Spec.Scheduler.KarmadaScheduler
+
+	defaultArgs := map[string]string{
+		"bind-address":               "0.0.0.0",
+		"kubeconfig":                 "/etc/kubeconfig",
+		"secure-port":                "10351",
+		"enable-scheduler-estimator": "false",
+		"feature-gates":              "Failover=true",
+		"v":                          "4",
+	}
+	computedArgs := maputil.MergeStringMaps(defaultArgs, scheduler.ExtraArgs)
+	args := maputil.ConvertToCommandOrArgs(computedArgs)
 
 	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
@@ -46,16 +59,9 @@ func (ctrl *KarmadaController) EnsureKarmadaSchedulerDeployment(karmada *install
 							Name:            "karmada-scheduler",
 							Image:           util.ComponentImageName(repository, constants.KarmadaComponentScheduler, version),
 							ImagePullPolicy: "IfNotPresent",
-							Command: []string{
-								"/bin/karmada-scheduler",
-								"--bind-address=0.0.0.0",
-								"--kubeconfig=/etc/kubeconfig",
-								"--secure-port=10351",
-								"--feature-gates=Failover=true",
-								"--enable-scheduler-estimator=false",
-								"--v=4",
-							},
-							Resources: karmada.Spec.Scheduler.KarmadaScheduler.Resources,
+							Command:         []string{"/bin/karmada-scheduler"},
+							Args:            args,
+							Resources:       karmada.Spec.Scheduler.KarmadaScheduler.Resources,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "kubeconfig",

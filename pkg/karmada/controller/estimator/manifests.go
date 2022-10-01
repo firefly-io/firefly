@@ -18,6 +18,7 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
+	maputil "github.com/carlory/firefly/pkg/util/map"
 )
 
 func (ctrl *EstimatorController) KubeConfigFromSecret(ctx context.Context, cluster *clusterv1alpha1.Cluster) (*clientcmdapi.Config, error) {
@@ -128,6 +129,14 @@ func (ctrl *EstimatorController) EnsureEstimatorDeployment(ctx context.Context, 
 	estimatorName := GenerateEstimatorServiceName(karmada.Name, "karmada-scheduler-estimator", cluster.Name)
 	repository := karmada.Spec.ImageRepository
 	version := karmada.Spec.KarmadaVersion
+	estimator := karmada.Spec.Scheduler.KarmadaSchedulerEstimator
+
+	defaultArgs := map[string]string{
+		"kubeconfig":   "/etc/kuberentes/kubeconfig",
+		"cluster-name": cluster.Name,
+	}
+	computedArgs := maputil.MergeStringMaps(defaultArgs, estimator.ExtraArgs)
+	args := maputil.ConvertToCommandOrArgs(computedArgs)
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -162,15 +171,10 @@ func (ctrl *EstimatorController) EnsureEstimatorDeployment(ctx context.Context, 
 					},
 					Containers: []corev1.Container{
 						{
-							Name:  estimatorName,
-							Image: util.ComponentImageName(repository, constants.KarmadaComponentSchedulerEstimator, version),
-							Command: []string{
-								"/bin/karmada-scheduler-estimator",
-								"--kubeconfig",
-								"/etc/kuberentes/kubeconfig",
-								"--cluster-name",
-								cluster.Name,
-							},
+							Name:    estimatorName,
+							Image:   util.ComponentImageName(repository, constants.KarmadaComponentSchedulerEstimator, version),
+							Command: []string{"/bin/karmada-scheduler-estimator"},
+							Args:    args,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "kubeconfig",
