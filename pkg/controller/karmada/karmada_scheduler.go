@@ -56,6 +56,7 @@ func (ctrl *KarmadaController) EnsureKarmadaSchedulerDeployment(karmada *install
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{"app": componentName},
 			},
+			Replicas: scheduler.Replicas,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{"app": componentName},

@@ -140,6 +140,7 @@ func (ctrl *EstimatorController) EnsureEstimatorDeployment(ctx context.Context, 
 					"app": estimatorName,
 				},
 			},
+			Replicas: estimator.Replicas,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{

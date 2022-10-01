@@ -136,6 +136,7 @@ func (ctrl *KarmadaController) EnsureKubeAPIServerDeployment(karmada *installv1a
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{"app": componentName},
 			},
+			Replicas: server.Replicas,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{"app": componentName},

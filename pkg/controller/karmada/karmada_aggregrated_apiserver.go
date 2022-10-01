@@ -109,6 +109,7 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerDeployment(karmad
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{"app": componentName},
 			},
+			Replicas: server.Replicas,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{"app": componentName},

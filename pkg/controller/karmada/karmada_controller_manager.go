@@ -60,6 +60,7 @@ func (ctrl *KarmadaController) EnsureKarmadaControllerManagerDeployment(karmada 
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{"app": componentName},
 			},
+			Replicas: kcm.Replicas,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{"app": componentName},
