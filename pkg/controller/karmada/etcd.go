@@ -7,16 +7,27 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/kubernetes/scheme"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
 )
 
-// makeEtcdService etcd service
-func makeEtcdService(karmada *installv1alpha1.Karmada) *corev1.Service {
+func (ctrl *KarmadaController) EnsureEtcd(karmada *installv1alpha1.Karmada) error {
+	if err := ctrl.EnsureEtcdService(karmada); err != nil {
+		return err
+	}
+	if err := ctrl.EnsureEtcdStatefulSet(karmada); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ctrl *KarmadaController) EnsureEtcdService(karmada *installv1alpha1.Karmada) error {
 	etcdName := util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name)
-	return &corev1.Service{
+	svc := &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "Service",
@@ -51,13 +62,15 @@ func makeEtcdService(karmada *installv1alpha1.Karmada) *corev1.Service {
 			},
 		},
 	}
+	controllerutil.SetOwnerReference(karmada, svc, scheme.Scheme)
+	return CreateOrUpdateService(ctrl.client, svc)
 }
 
-func makeETCDStatefulSet(karmada *installv1alpha1.Karmada) *appsv1.StatefulSet {
+func (ctrl *KarmadaController) EnsureEtcdStatefulSet(karmada *installv1alpha1.Karmada) error {
+	etcdName := util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name)
 	repository := karmada.Spec.ImageRepository
 
-	etcdName := util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name)
-	etcd := &appsv1.StatefulSet{
+	sts := &appsv1.StatefulSet{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
 			Kind:       "StatefulSet",
@@ -124,5 +137,6 @@ func makeETCDStatefulSet(karmada *installv1alpha1.Karmada) *appsv1.StatefulSet {
 			},
 		},
 	}
-	return etcd
+	controllerutil.SetOwnerReference(karmada, sts, scheme.Scheme)
+	return CreateOrUpdateStatefulSet(ctrl.client, sts)
 }

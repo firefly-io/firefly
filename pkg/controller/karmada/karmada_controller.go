@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"time"
 
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -63,7 +63,7 @@ func NewKarmadaController(
 	fireflyClient fireflyclient.Interface,
 	karmadaInformer installinformers.KarmadaInformer) (*KarmadaController, error) {
 	broadcaster := record.NewBroadcaster()
-	recorder := broadcaster.NewRecorder(scheme.Scheme, v1.EventSource{Component: "karmada-controller"})
+	recorder := broadcaster.NewRecorder(scheme.Scheme, corev1.EventSource{Component: "karmada-controller"})
 
 	if client != nil && client.CoreV1().RESTClient().GetRateLimiter() != nil {
 		ratelimiter.RegisterMetricAndTrackRateLimiterUsage("karmada_controller", client.CoreV1().RESTClient().GetRateLimiter())
@@ -197,7 +197,7 @@ func (ctrl *KarmadaController) enqueue(karmada *installv1alpha1.Karmada) {
 }
 
 func (ctrl *KarmadaController) handleErr(err error, key interface{}) {
-	if err == nil || errors.HasStatusCause(err, v1.NamespaceTerminatingCause) {
+	if err == nil || errors.HasStatusCause(err, corev1.NamespaceTerminatingCause) {
 		ctrl.queue.Forget(key)
 		return
 	}
@@ -284,11 +284,65 @@ func (ctrl *KarmadaController) syncKarmada(ctx context.Context, key string) erro
 		return err
 	}
 
-	if err := ctrl.initKarmadaAPIServer(karmada); err != nil {
+	if err := ctrl.EnsureEtcd(karmada); err != nil {
 		return err
 	}
 
-	if err := ctrl.initKarmadaComponent(karmada); err != nil {
+	if err := ctrl.EnsureAPIServer(karmada); err != nil {
+		return err
+	}
+
+	if err := ctrl.EnsureControllerManager(karmada); err != nil {
+		return err
+	}
+	if err := ctrl.EnsureScheduler(karmada); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ctrl *KarmadaController) EnsureAPIServer(karmada *installv1alpha1.Karmada) error {
+	kubeClient, err := ctrl.EnsureKubeAPIServer(karmada)
+	if err != nil {
+		return err
+	}
+
+	klog.InfoS("karmada-apiserver is ready", "karmada", klog.KObj(karmada))
+
+	_, err = kubeClient.CoreV1().Namespaces().Create(context.TODO(), &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "karmada-system"}}, metav1.CreateOptions{})
+	if err != nil && !errors.IsAlreadyExists(err) {
+		return err
+	}
+
+	if err := ctrl.EnsureKarmadaAggregatedAPIServer(karmada); err != nil {
+		return err
+	}
+
+	if err := ctrl.EnsureKarmadaCRDs(karmada); err != nil {
+		return err
+	}
+	if err := ctrl.EnsureKaramdaWebhook(karmada); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ctrl *KarmadaController) EnsureControllerManager(karmada *installv1alpha1.Karmada) error {
+	if err := ctrl.EnsureKubeControllerManager(karmada); err != nil {
+		return err
+	}
+
+	if err := ctrl.EnsureKarmadaControllerManager(karmada); err != nil {
+		return err
+	}
+	if err := ctrl.EnsureFireflyKarmadaManager(karmada); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ctrl *KarmadaController) EnsureScheduler(karmada *installv1alpha1.Karmada) error {
+	if err := ctrl.EnsureKarmadaScheduler(karmada); err != nil {
 		return err
 	}
 	return nil

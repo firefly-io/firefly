@@ -2,20 +2,49 @@ package karmada
 
 import (
 	"fmt"
+	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
 )
 
-func makeKarmadaAPIServerService(karmada *installv1alpha1.Karmada) *corev1.Service {
+// EnsureKubeAPIServer ensures the kube-apiserver components exists and returns a kubeclient if it's ready.
+func (ctrl *KarmadaController) EnsureKubeAPIServer(karmada *installv1alpha1.Karmada) (kubernetes.Interface, error) {
+	if err := ctrl.EnsureKubeAPIServerService(karmada); err != nil {
+		return nil, err
+	}
+	if err := ctrl.EnsureKubeAPIServerDeployment(karmada); err != nil {
+		return nil, err
+	}
+
+	clientConfig, err := ctrl.GenerateClientConfig(karmada)
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := kubernetes.NewForConfig(clientConfig)
+	if err != nil {
+		return nil, err
+	}
+	if err := util.NewKubeWaiter(client, 10*time.Second).WaitForKubeAPI(); err != nil {
+		return nil, err
+	}
+	return client, nil
+}
+
+// EnsureKubeAPIServerService ensures the kube-apiserver service exists.
+func (ctrl *KarmadaController) EnsureKubeAPIServerService(karmada *installv1alpha1.Karmada) error {
 	componentName := util.ComponentName(constants.KarmadaComponentKubeAPIServer, karmada.Name)
-	return &corev1.Service{
+	svc := &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "Service",
@@ -40,14 +69,17 @@ func makeKarmadaAPIServerService(karmada *installv1alpha1.Karmada) *corev1.Servi
 			},
 		},
 	}
+	controllerutil.SetOwnerReference(karmada, svc, scheme.Scheme)
+	return CreateOrUpdateService(ctrl.client, svc)
 }
 
-func makeKarmadaAPIServerDeployment(karmada *installv1alpha1.Karmada) *appsv1.Deployment {
+// EnsureKubeAPIServerDeployment ensures the kube-apiserver deployment exists.
+func (ctrl *KarmadaController) EnsureKubeAPIServerDeployment(karmada *installv1alpha1.Karmada) error {
+	componentName := util.ComponentName(constants.KarmadaComponentKubeAPIServer, karmada.Name)
 	repository := karmada.Spec.ImageRepository
 	version := karmada.Spec.KubernetesVersion
 
-	componentName := util.ComponentName(constants.KarmadaComponentKubeAPIServer, karmada.Name)
-	apiServer := &appsv1.Deployment{
+	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
 			Kind:       "Deployment",
@@ -160,5 +192,6 @@ func makeKarmadaAPIServerDeployment(karmada *installv1alpha1.Karmada) *appsv1.De
 			},
 		},
 	}
-	return apiServer
+	controllerutil.SetOwnerReference(karmada, deployment, scheme.Scheme)
+	return CreateOrUpdateDeployment(ctrl.client, deployment)
 }

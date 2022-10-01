@@ -2,21 +2,178 @@ package karmada
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/yaml"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
 )
+
+func (ctrl *KarmadaController) EnsureKaramdaWebhook(karmada *installv1alpha1.Karmada) error {
+	if err := ctrl.EnsureKarmadaWebhookConfiguration(karmada); err != nil {
+		return err
+	}
+	if err := ctrl.EnsureKaramdaWebhookService(karmada); err != nil {
+		return err
+	}
+	if err := ctrl.EnsureKaramdaWebhookDeployment(karmada); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ctrl *KarmadaController) EnsureKaramdaWebhookService(karmada *installv1alpha1.Karmada) error {
+	componentName := util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name)
+	svc := &corev1.Service{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Service",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      componentName,
+			Namespace: karmada.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			Type:     corev1.ServiceTypeClusterIP,
+			Selector: map[string]string{"app": componentName},
+			Ports: []corev1.ServicePort{
+				{
+					Protocol: corev1.ProtocolTCP,
+					Port:     443,
+					TargetPort: intstr.IntOrString{
+						Type:   intstr.Int,
+						IntVal: 8443,
+					},
+				},
+			},
+		},
+	}
+	controllerutil.SetOwnerReference(karmada, svc, scheme.Scheme)
+	return CreateOrUpdateService(ctrl.client, svc)
+}
+
+func (ctrl *KarmadaController) EnsureKaramdaWebhookDeployment(karmada *installv1alpha1.Karmada) error {
+	componentName := util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name)
+	repository := karmada.Spec.ImageRepository
+	version := karmada.Spec.KarmadaVersion
+
+	deployment := &appsv1.Deployment{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "apps/v1",
+			Kind:       "Deployment",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      componentName,
+			Namespace: karmada.Namespace,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{"app": componentName},
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{"app": componentName},
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:            "karmada-webhook",
+							Image:           util.ComponentImageName(repository, constants.KarmadaComponentWebhook, version),
+							ImagePullPolicy: "IfNotPresent",
+							Command: []string{
+								"/bin/karmada-webhook",
+								"--bind-address=0.0.0.0",
+								"--kubeconfig=/etc/kubeconfig",
+								"--secure-port=8443",
+								"--cert-dir=/var/serving-cert",
+								"--v=4",
+							},
+							Ports: []corev1.ContainerPort{
+								{
+									ContainerPort: 8443,
+								},
+							},
+							Resources: karmada.Spec.Webhook.KarmadaWebhook.Resources,
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "kubeconfig",
+									MountPath: "/etc/kubeconfig",
+									SubPath:   "kubeconfig",
+								},
+								{
+									Name:      "cert",
+									MountPath: "/var/serving-cert",
+									ReadOnly:  true,
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "kubeconfig",
+							VolumeSource: corev1.VolumeSource{
+								Secret: &corev1.SecretVolumeSource{
+									SecretName: fmt.Sprintf("%s-kubeconfig", karmada.Name),
+								},
+							},
+						},
+						{
+							Name: "cert",
+							VolumeSource: corev1.VolumeSource{
+								Secret: &corev1.SecretVolumeSource{
+									SecretName: fmt.Sprintf("%s-cert", componentName),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	controllerutil.SetOwnerReference(karmada, deployment, scheme.Scheme)
+	return CreateOrUpdateDeployment(ctrl.client, deployment)
+}
+
+func (ctrl *KarmadaController) EnsureKarmadaWebhookConfiguration(karmada *installv1alpha1.Karmada) error {
+	clientConfig, err := ctrl.GenerateClientConfig(karmada)
+	if err != nil {
+		return err
+	}
+	client, err := kubernetes.NewForConfig(clientConfig)
+	if err != nil {
+		return err
+	}
+
+	karmadaCert, err := ctrl.client.CoreV1().Secrets(karmada.Namespace).Get(context.TODO(), fmt.Sprintf("%s-cert", util.ComponentName("karmada", karmada.Name)), metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	caCrt := karmadaCert.Data["ca.crt"]
+	caBunlde := base64.StdEncoding.EncodeToString(caCrt)
+	if err := createValidatingWebhookConfiguration(client, validatingConfig(caBunlde, karmada)); err != nil {
+		return err
+	}
+
+	if err := createMutatingWebhookConfiguration(client, mutatingConfig(caBunlde, karmada)); err != nil {
+		return err
+	}
+	return nil
+}
 
 func mutatingConfig(caBundle string, karmada *installv1alpha1.Karmada) string {
 	return fmt.Sprintf(`apiVersion: admissionregistration.k8s.io/v1
