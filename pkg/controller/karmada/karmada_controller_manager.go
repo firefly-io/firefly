@@ -22,16 +22,22 @@ func (ctrl *KarmadaController) EnsureKarmadaControllerManager(karmada *installv1
 
 func (ctrl *KarmadaController) EnsureKarmadaControllerManagerDeployment(karmada *installv1alpha1.Karmada) error {
 	componentName := util.ComponentName(constants.KarmadaComponentControllerManager, karmada.Name)
-	repository := karmada.Spec.ImageRepository
-	version := karmada.Spec.KarmadaVersion
 	kcm := karmada.Spec.ControllerManager.KarmadaControllerManager
+	repository := karmada.Spec.ImageRepository
+	tag := karmada.Spec.KarmadaVersion
+	if kcm.ImageRepository != "" {
+		repository = kcm.ImageRepository
+	}
+	if kcm.ImageTag != "" {
+		tag = kcm.ImageTag
+	}
 
 	defaultArgs := map[string]string{
 		"bind-address":                    "0.0.0.0",
 		"kubeconfig":                      "/etc/kubeconfig",
 		"cluster-status-update-frequency": "10s",
 		"secure-port":                     "10357",
-		"feature-gates":                   "PropagateDeps",
+		"feature-gates":                   "PropagateDeps=true",
 		"v":                               "4",
 	}
 	if kcm.Controllers != nil {
@@ -61,11 +67,11 @@ func (ctrl *KarmadaController) EnsureKarmadaControllerManagerDeployment(karmada 
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-controller-manager",
-							Image:           util.ComponentImageName(repository, constants.KarmadaComponentControllerManager, version),
+							Image:           util.ComponentImageName(repository, constants.KarmadaComponentControllerManager, tag),
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"/bin/karmada-controller-manager"},
 							Args:            args,
-							Resources:       karmada.Spec.ControllerManager.KarmadaControllerManager.Resources,
+							Resources:       kcm.Resources,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "kubeconfig",

@@ -68,7 +68,17 @@ func (ctrl *KarmadaController) EnsureEtcdService(karmada *installv1alpha1.Karmad
 
 func (ctrl *KarmadaController) EnsureEtcdStatefulSet(karmada *installv1alpha1.Karmada) error {
 	etcdName := util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name)
+	etcd := karmada.Spec.Etcd.Local
 	repository := karmada.Spec.ImageRepository
+	tag := "3.4.13-0"
+	if etcd != nil {
+		if etcd.ImageRepository != "" {
+			repository = etcd.ImageRepository
+		}
+		if etcd.ImageTag != "" {
+			tag = etcd.ImageTag
+		}
+	}
 
 	sts := &appsv1.StatefulSet{
 		TypeMeta: metav1.TypeMeta{
@@ -93,7 +103,7 @@ func (ctrl *KarmadaController) EnsureEtcdStatefulSet(karmada *installv1alpha1.Ka
 					Containers: []corev1.Container{
 						{
 							Name:            "etcd",
-							Image:           util.ComponentImageName(repository, constants.KarmadaComponentEtcd, "3.4.13-0"),
+							Image:           util.ComponentImageName(repository, constants.KarmadaComponentEtcd, tag),
 							ImagePullPolicy: "IfNotPresent",
 							Command: []string{
 								"/usr/local/bin/etcd",

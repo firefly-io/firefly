@@ -77,8 +77,15 @@ func (ctrl *KarmadaController) EnsureKubeAPIServerService(karmada *installv1alph
 // EnsureKubeAPIServerDeployment ensures the kube-apiserver deployment exists.
 func (ctrl *KarmadaController) EnsureKubeAPIServerDeployment(karmada *installv1alpha1.Karmada) error {
 	componentName := util.ComponentName(constants.KarmadaComponentKubeAPIServer, karmada.Name)
+	server := karmada.Spec.APIServer.KubeAPIServer
 	repository := karmada.Spec.ImageRepository
-	version := karmada.Spec.KubernetesVersion
+	tag := karmada.Spec.KubernetesVersion
+	if server.ImageRepository != "" {
+		repository = server.ImageRepository
+	}
+	if server.ImageTag != "" {
+		tag = server.ImageTag
+	}
 
 	defaultArgs := map[string]string{
 		"allow-privileged":                   "true",
@@ -112,7 +119,7 @@ func (ctrl *KarmadaController) EnsureKubeAPIServerDeployment(karmada *installv1a
 		"tls-cert-file":                      "/etc/kubernetes/pki/apiserver.crt",
 		"tls-private-key-file":               "/etc/kubernetes/pki/apiserver.key",
 	}
-	computedArgs := maputil.MergeStringMaps(defaultArgs, karmada.Spec.APIServer.KubeAPIServer.ExtraArgs)
+	computedArgs := maputil.MergeStringMaps(defaultArgs, server.ExtraArgs)
 	args := maputil.ConvertToCommandOrArgs(computedArgs)
 
 	deployment := &appsv1.Deployment{
@@ -136,11 +143,11 @@ func (ctrl *KarmadaController) EnsureKubeAPIServerDeployment(karmada *installv1a
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-apiserver",
-							Image:           util.ComponentImageName(repository, "kube-apiserver", version),
+							Image:           util.ComponentImageName(repository, "kube-apiserver", tag),
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"kube-apiserver"},
 							Args:            args,
-							Resources:       karmada.Spec.APIServer.KubeAPIServer.Resources,
+							Resources:       server.Resources,
 							LivenessProbe: &corev1.Probe{
 								FailureThreshold: 8,
 								ProbeHandler: corev1.ProbeHandler{

@@ -67,9 +67,15 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerService(karmada *
 
 func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerDeployment(karmada *installv1alpha1.Karmada) error {
 	componentName := util.ComponentName(constants.KarmadaComponentAggregratedAPIServer, karmada.Name)
-	repository := karmada.Spec.ImageRepository
-	version := karmada.Spec.KarmadaVersion
 	server := karmada.Spec.APIServer.KarmadaAggregratedAPIServer
+	repository := karmada.Spec.ImageRepository
+	tag := karmada.Spec.KarmadaVersion
+	if server.ImageRepository != "" {
+		repository = server.ImageRepository
+	}
+	if server.ImageTag != "" {
+		tag = server.ImageTag
+	}
 
 	defaultArgs := map[string]string{
 		"kubeconfig":                "/etc/kubeconfig",
@@ -110,11 +116,11 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerDeployment(karmad
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-aggregated-apiserver",
-							Image:           util.ComponentImageName(repository, constants.KarmadaComponentAggregratedAPIServer, version),
+							Image:           util.ComponentImageName(repository, constants.KarmadaComponentAggregratedAPIServer, tag),
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"/bin/karmada-aggregated-apiserver"},
 							Args:            args,
-							Resources:       karmada.Spec.APIServer.KarmadaAggregratedAPIServer.Resources,
+							Resources:       server.Resources,
 							LivenessProbe: &corev1.Probe{
 								FailureThreshold: 8,
 								ProbeHandler: corev1.ProbeHandler{

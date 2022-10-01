@@ -22,9 +22,15 @@ func (ctrl *KarmadaController) EnsureKubeControllerManager(karmada *installv1alp
 
 func (ctrl *KarmadaController) EnsureKubeControllerManagerDeployment(karmada *installv1alpha1.Karmada) error {
 	componentName := util.ComponentName(constants.KarmadaComponentKubeControllerManager, karmada.Name)
-	repository := karmada.Spec.ImageRepository
-	version := karmada.Spec.KubernetesVersion
 	kcm := karmada.Spec.ControllerManager.KubeControllerManager
+	repository := karmada.Spec.ImageRepository
+	tag := karmada.Spec.KubernetesVersion
+	if kcm.ImageRepository != "" {
+		repository = kcm.ImageRepository
+	}
+	if kcm.ImageTag != "" {
+		tag = kcm.ImageTag
+	}
 
 	defaultArgs := map[string]string{
 		"allocate-node-cidrs":              "true",
@@ -73,11 +79,11 @@ func (ctrl *KarmadaController) EnsureKubeControllerManagerDeployment(karmada *in
 					Containers: []corev1.Container{
 						{
 							Name:            "kube-controller-manager",
-							Image:           util.ComponentImageName(repository, "kube-controller-manager", version),
+							Image:           util.ComponentImageName(repository, "kube-controller-manager", tag),
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"kube-controller-manager"},
 							Args:            args,
-							Resources:       karmada.Spec.ControllerManager.KubeControllerManager.Resources,
+							Resources:       kcm.Resources,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "k8s-certs",

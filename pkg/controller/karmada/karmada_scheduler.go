@@ -21,9 +21,15 @@ func (ctrl *KarmadaController) EnsureKarmadaScheduler(karmada *installv1alpha1.K
 
 func (ctrl *KarmadaController) EnsureKarmadaSchedulerDeployment(karmada *installv1alpha1.Karmada) error {
 	componentName := util.ComponentName(constants.KarmadaComponentScheduler, karmada.Name)
-	repository := karmada.Spec.ImageRepository
-	version := karmada.Spec.KarmadaVersion
 	scheduler := karmada.Spec.Scheduler.KarmadaScheduler
+	repository := karmada.Spec.ImageRepository
+	tag := karmada.Spec.KarmadaVersion
+	if scheduler.ImageRepository != "" {
+		repository = scheduler.ImageRepository
+	}
+	if scheduler.ImageTag != "" {
+		tag = scheduler.ImageTag
+	}
 
 	defaultArgs := map[string]string{
 		"bind-address":               "0.0.0.0",
@@ -57,11 +63,11 @@ func (ctrl *KarmadaController) EnsureKarmadaSchedulerDeployment(karmada *install
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-scheduler",
-							Image:           util.ComponentImageName(repository, constants.KarmadaComponentScheduler, version),
+							Image:           util.ComponentImageName(repository, constants.KarmadaComponentScheduler, tag),
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"/bin/karmada-scheduler"},
 							Args:            args,
-							Resources:       karmada.Spec.Scheduler.KarmadaScheduler.Resources,
+							Resources:       scheduler.Resources,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "kubeconfig",

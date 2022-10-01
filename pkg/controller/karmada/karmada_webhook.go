@@ -70,9 +70,15 @@ func (ctrl *KarmadaController) EnsureKaramdaWebhookService(karmada *installv1alp
 
 func (ctrl *KarmadaController) EnsureKaramdaWebhookDeployment(karmada *installv1alpha1.Karmada) error {
 	componentName := util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name)
-	repository := karmada.Spec.ImageRepository
-	version := karmada.Spec.KarmadaVersion
 	webhook := karmada.Spec.Webhook.KarmadaWebhook
+	repository := karmada.Spec.ImageRepository
+	tag := karmada.Spec.KarmadaVersion
+	if webhook.ImageRepository != "" {
+		repository = webhook.ImageRepository
+	}
+	if webhook.ImageTag != "" {
+		tag = webhook.ImageTag
+	}
 
 	defaultArgs := map[string]string{
 		"bind-address": "0.0.0.0",
@@ -105,7 +111,7 @@ func (ctrl *KarmadaController) EnsureKaramdaWebhookDeployment(karmada *installv1
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-webhook",
-							Image:           util.ComponentImageName(repository, constants.KarmadaComponentWebhook, version),
+							Image:           util.ComponentImageName(repository, constants.KarmadaComponentWebhook, tag),
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"/bin/karmada-webhook"},
 							Args:            args,
@@ -114,7 +120,7 @@ func (ctrl *KarmadaController) EnsureKaramdaWebhookDeployment(karmada *installv1
 									ContainerPort: 8443,
 								},
 							},
-							Resources: karmada.Spec.Webhook.KarmadaWebhook.Resources,
+							Resources: webhook.Resources,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "kubeconfig",
