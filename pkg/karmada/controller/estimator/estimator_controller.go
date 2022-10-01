@@ -19,6 +19,7 @@ package estimator
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"time"
 
 	clusterv1alpha1 "github.com/karmada-io/karmada/pkg/apis/cluster/v1alpha1"
@@ -26,6 +27,7 @@ import (
 	clusterlisters "github.com/karmada-io/karmada/pkg/generated/listers/cluster/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/labels"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
@@ -37,6 +39,7 @@ import (
 	"k8s.io/component-base/metrics/prometheus/ratelimiter"
 	"k8s.io/klog/v2"
 
+	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	installinformers "github.com/carlory/firefly/pkg/generated/informers/externalversions/install/v1alpha1"
 	installlisters "github.com/carlory/firefly/pkg/generated/listers/install/v1alpha1"
 )
@@ -85,6 +88,10 @@ func NewEstimatorController(
 		AddFunc:    ctrl.addCluster,
 		UpdateFunc: ctrl.updateCluster,
 		DeleteFunc: ctrl.deleteCluster,
+	})
+
+	fireflyKarmadaInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+		UpdateFunc: ctrl.syncKarmada,
 	})
 
 	return ctrl, nil
@@ -191,6 +198,31 @@ func (ctrl *EstimatorController) deleteCluster(obj interface{}) {
 	}
 	klog.V(4).InfoS("Deleting cluster", "cluster", klog.KObj(cluster))
 	ctrl.enqueue(cluster)
+}
+
+func (ctrl *EstimatorController) syncKarmada(old, cur interface{}) {
+	oldKarmada := old.(*installv1alpha1.Karmada)
+	curKarmada := cur.(*installv1alpha1.Karmada)
+	oldEstimator := oldKarmada.Spec.Scheduler.KarmadaSchedulerEstimator
+	curEstimator := curKarmada.Spec.Scheduler.KarmadaSchedulerEstimator
+	klog.V(4).InfoS("Sync karmada", "karmada", klog.KObj(oldKarmada))
+
+	var needUpdate bool
+	if !reflect.DeepEqual(oldEstimator, curEstimator) ||
+		(oldEstimator.ImageTag == "" && oldKarmada.Spec.KarmadaVersion != curKarmada.Spec.KarmadaVersion) {
+		needUpdate = true
+	}
+	if !needUpdate {
+		return
+	}
+
+	clusters, err := ctrl.clustersLister.List(labels.Everything())
+	if err != nil {
+		klog.Warningf("Failed to list clusters: %v", err)
+	}
+	for _, cluster := range clusters {
+		ctrl.enqueue(cluster)
+	}
 }
 
 func (ctrl *EstimatorController) enqueue(cluster *clusterv1alpha1.Cluster) {

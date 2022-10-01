@@ -7,7 +7,6 @@ import (
 	clusterv1alpha1 "github.com/karmada-io/karmada/pkg/apis/cluster/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -18,6 +17,7 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
+	clientutil "github.com/carlory/firefly/pkg/util/client"
 	maputil "github.com/carlory/firefly/pkg/util/map"
 )
 
@@ -82,13 +82,7 @@ func (ctrl *EstimatorController) EnsureEstimatorKubeconfigSecret(ctx context.Con
 		},
 	}
 	controllerutil.SetOwnerReference(karmada, secret, scheme.Scheme)
-
-	client := ctrl.fireflyKubeClient.CoreV1().Secrets(karmada.Namespace)
-	_, err = client.Create(ctx, secret, metav1.CreateOptions{})
-	if err != nil && !errors.IsAlreadyExists(err) {
-		return err
-	}
-	return nil
+	return clientutil.CreateOrUpdateSecret(ctrl.fireflyKubeClient, secret)
 }
 
 func (ctrl *EstimatorController) EnsureEstimatorService(ctx context.Context, karmada *installv1alpha1.Karmada, cluster *clusterv1alpha1.Cluster) error {
@@ -116,13 +110,7 @@ func (ctrl *EstimatorController) EnsureEstimatorService(ctx context.Context, kar
 		},
 	}
 	controllerutil.SetOwnerReference(karmada, svc, scheme.Scheme)
-
-	client := ctrl.fireflyKubeClient.CoreV1().Services(karmada.Namespace)
-	_, err := client.Create(ctx, svc, metav1.CreateOptions{})
-	if err != nil && !errors.IsAlreadyExists(err) {
-		return err
-	}
-	return nil
+	return clientutil.CreateOrUpdateService(ctrl.fireflyKubeClient, svc)
 }
 
 func (ctrl *EstimatorController) EnsureEstimatorDeployment(ctx context.Context, karmada *installv1alpha1.Karmada, cluster *clusterv1alpha1.Cluster) error {
@@ -209,13 +197,7 @@ func (ctrl *EstimatorController) EnsureEstimatorDeployment(ctx context.Context, 
 		},
 	}
 	controllerutil.SetOwnerReference(karmada, deployment, scheme.Scheme)
-
-	client := ctrl.fireflyKubeClient.AppsV1().Deployments(karmada.Namespace)
-	_, err := client.Create(ctx, deployment, metav1.CreateOptions{})
-	if err != nil && !errors.IsAlreadyExists(err) {
-		return err
-	}
-	return nil
+	return clientutil.CreateOrUpdateDeployment(ctrl.fireflyKubeClient, deployment)
 }
 
 // GenerateEstimatorServiceName generates the gRPC scheduler estimator service name which belongs to a cluster.

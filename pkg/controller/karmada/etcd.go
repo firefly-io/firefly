@@ -13,6 +13,7 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
+	clientutil "github.com/carlory/firefly/pkg/util/client"
 )
 
 func (ctrl *KarmadaController) EnsureEtcd(karmada *installv1alpha1.Karmada) error {
@@ -63,7 +64,7 @@ func (ctrl *KarmadaController) EnsureEtcdService(karmada *installv1alpha1.Karmad
 		},
 	}
 	controllerutil.SetOwnerReference(karmada, svc, scheme.Scheme)
-	return CreateOrUpdateService(ctrl.client, svc)
+	return clientutil.CreateOrUpdateService(ctrl.client, svc)
 }
 
 func (ctrl *KarmadaController) EnsureEtcdStatefulSet(karmada *installv1alpha1.Karmada) error {
@@ -148,5 +149,5 @@ func (ctrl *KarmadaController) EnsureEtcdStatefulSet(karmada *installv1alpha1.Ka
 		},
 	}
 	controllerutil.SetOwnerReference(karmada, sts, scheme.Scheme)
-	return CreateOrUpdateStatefulSet(ctrl.client, sts)
+	return clientutil.CreateOrUpdateStatefulSet(ctrl.client, sts)
 }

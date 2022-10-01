@@ -22,6 +22,7 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
+	clientutil "github.com/carlory/firefly/pkg/util/client"
 	maputil "github.com/carlory/firefly/pkg/util/map"
 )
 
@@ -65,7 +66,7 @@ func (ctrl *KarmadaController) EnsureKaramdaWebhookService(karmada *installv1alp
 		},
 	}
 	controllerutil.SetOwnerReference(karmada, svc, scheme.Scheme)
-	return CreateOrUpdateService(ctrl.client, svc)
+	return clientutil.CreateOrUpdateService(ctrl.client, svc)
 }
 
 func (ctrl *KarmadaController) EnsureKaramdaWebhookDeployment(karmada *installv1alpha1.Karmada) error {
@@ -158,7 +159,7 @@ func (ctrl *KarmadaController) EnsureKaramdaWebhookDeployment(karmada *installv1
 		},
 	}
 	controllerutil.SetOwnerReference(karmada, deployment, scheme.Scheme)
-	return CreateOrUpdateDeployment(ctrl.client, deployment)
+	return clientutil.CreateOrUpdateDeployment(ctrl.client, deployment)
 }
 
 func (ctrl *KarmadaController) EnsureKarmadaWebhookConfiguration(karmada *installv1alpha1.Karmada) error {

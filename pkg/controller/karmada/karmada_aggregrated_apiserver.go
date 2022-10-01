@@ -17,6 +17,7 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
+	clientutil "github.com/carlory/firefly/pkg/util/client"
 	maputil "github.com/carlory/firefly/pkg/util/map"
 )
 
@@ -62,7 +63,7 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerService(karmada *
 		},
 	}
 	controllerutil.SetOwnerReference(karmada, svc, scheme.Scheme)
-	return CreateOrUpdateService(ctrl.client, svc)
+	return clientutil.CreateOrUpdateService(ctrl.client, svc)
 }
 
 func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerDeployment(karmada *installv1alpha1.Karmada) error {
@@ -192,7 +193,7 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerDeployment(karmad
 	}
 
 	controllerutil.SetOwnerReference(karmada, deployment, scheme.Scheme)
-	return CreateOrUpdateDeployment(ctrl.client, deployment)
+	return clientutil.CreateOrUpdateDeployment(ctrl.client, deployment)
 }
 
 func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerAPIService(karmada *installv1alpha1.Karmada) error {
@@ -223,7 +224,7 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerAPIService(karmad
 			ExternalName: fmt.Sprintf("%s.%s.svc", util.ComponentName(constants.KarmadaComponentAggregratedAPIServer, karmada.Name), karmada.Namespace),
 		},
 	}
-	if err = CreateOrUpdateService(kubeClient, svc); err != nil {
+	if err = clientutil.CreateOrUpdateService(kubeClient, svc); err != nil {
 		return err
 	}
 
@@ -249,5 +250,5 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerAPIService(karmad
 			VersionPriority: 10,
 		},
 	}
-	return CreateOrUpdateAPIService(aaClient, apisvc)
+	return clientutil.CreateOrUpdateAPIService(aaClient, apisvc)
 }
