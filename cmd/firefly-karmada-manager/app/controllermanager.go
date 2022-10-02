@@ -54,7 +54,6 @@ import (
 	"k8s.io/component-base/version/verflag"
 	genericcontrollermanager "k8s.io/controller-manager/app"
 	"k8s.io/controller-manager/controller"
-	"k8s.io/controller-manager/pkg/clientbuilder"
 	controllerhealthz "k8s.io/controller-manager/pkg/healthz"
 	"k8s.io/controller-manager/pkg/informerfactory"
 	"k8s.io/controller-manager/pkg/leadermigration"
@@ -62,6 +61,7 @@ import (
 
 	"github.com/carlory/firefly/cmd/firefly-karmada-manager/app/config"
 	"github.com/carlory/firefly/cmd/firefly-karmada-manager/app/options"
+	"github.com/carlory/firefly/pkg/clientbuilder"
 	fireflyversioned "github.com/carlory/firefly/pkg/generated/clientset/versioned"
 	fireflyinformers "github.com/carlory/firefly/pkg/generated/informers/externalversions"
 	fireflyctrlmgrconfig "github.com/carlory/firefly/pkg/karmada/controller/apis/config"
@@ -291,10 +291,10 @@ func Run(c *config.CompletedConfig, stopCh <-chan struct{}) error {
 // ControllerContext defines the context object for controller
 type ControllerContext struct {
 	// KarmadaClientBuilder will provide a client for this controller to use
-	KarmadaClientBuilder clientbuilder.ControllerClientBuilder
+	KarmadaClientBuilder clientbuilder.KarmadaControllerClientBuilder
 
 	// KarmadaClientBuilder will provide a client for this controller to use
-	FireflyClientBuilder clientbuilder.ControllerClientBuilder
+	FireflyClientBuilder clientbuilder.FireflyControllerClientBuilder
 
 	// KarmadaKubeInformerFactory gives access to kubernetes informers for the controller.
 	KarmadaKubeInformerFactory informers.SharedInformerFactory
@@ -379,7 +379,7 @@ func NewControllerInitializers() map[string]InitFunc {
 // TODO: In general, any controller checking this needs to be dynamic so
 // users don't have to restart their controller manager if they change the apiserver.
 // Until we get there, the structure here needs to be exposed for the construction of a proper ControllerContext.
-func GetAvailableResources(clientBuilder clientbuilder.ControllerClientBuilder) (map[schema.GroupVersionResource]bool, error) {
+func GetAvailableResources(clientBuilder clientbuilder.KarmadaControllerClientBuilder) (map[schema.GroupVersionResource]bool, error) {
 	client := clientBuilder.ClientOrDie("controller-discovery")
 	discoveryClient := client.Discovery()
 	_, resourceMap, err := discoveryClient.ServerGroupsAndResources()
@@ -407,7 +407,7 @@ func GetAvailableResources(clientBuilder clientbuilder.ControllerClientBuilder) 
 // CreateControllerContext creates a context struct containing references to resources needed by the
 // controllers such as the cloud provider and clientBuilder. rootClientBuilder is only used for
 // the shared-informers client and token controller.
-func CreateControllerContext(s *config.CompletedConfig, karmadaClientBuilder, fireflyKubeClientBuilder clientbuilder.ControllerClientBuilder, stop <-chan struct{}) (ControllerContext, error) {
+func CreateControllerContext(s *config.CompletedConfig, karmadaClientBuilder clientbuilder.KarmadaControllerClientBuilder, fireflyKubeClientBuilder clientbuilder.FireflyControllerClientBuilder, stop <-chan struct{}) (ControllerContext, error) {
 	karmadaKubeClient := karmadaClientBuilder.ClientOrDie("firefly-kube-shared-informers")
 	karmadaKubeSharedInformers := informers.NewSharedInformerFactory(karmadaKubeClient, ResyncPeriod(s)())
 
@@ -519,14 +519,10 @@ func StartControllers(ctx context.Context, controllerCtx ControllerContext, cont
 }
 
 // createClientBuilders creates karmadaClientBuilder and fireflyKubeClientBuilder from the given configuration
-func createClientBuilders(c *config.CompletedConfig) (karmadaClientBuilder clientbuilder.ControllerClientBuilder, fireflyKubeClientBuilder clientbuilder.ControllerClientBuilder) {
-	karmadaClientBuilder = clientbuilder.SimpleControllerClientBuilder{
-		ClientConfig: c.KarmadaKubeconfig,
-	}
+func createClientBuilders(c *config.CompletedConfig) (karmadaClientBuilder clientbuilder.KarmadaControllerClientBuilder, fireflyKubeClientBuilder clientbuilder.FireflyControllerClientBuilder) {
+	karmadaClientBuilder = clientbuilder.NewSimpleKarmadaControllerClientBuilder(c.KarmadaKubeconfig)
 
-	fireflyKubeClientBuilder = clientbuilder.SimpleControllerClientBuilder{
-		ClientConfig: c.FireflyKubeconfig,
-	}
+	fireflyKubeClientBuilder = clientbuilder.NewSimpleFireflyControllerClientBuilder(c.FireflyKubeconfig)
 	return
 }
 

@@ -23,10 +23,12 @@ import (
 	"time"
 
 	clusterv1alpha1 "github.com/karmada-io/karmada/pkg/apis/cluster/v1alpha1"
+	karmadaversioned "github.com/karmada-io/karmada/pkg/generated/clientset/versioned"
 	clusterinformers "github.com/karmada-io/karmada/pkg/generated/informers/externalversions/cluster/v1alpha1"
 	clusterlisters "github.com/karmada-io/karmada/pkg/generated/listers/cluster/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -38,6 +40,8 @@ import (
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/component-base/metrics/prometheus/ratelimiter"
 	"k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	installinformers "github.com/carlory/firefly/pkg/generated/informers/externalversions/install/v1alpha1"
@@ -51,11 +55,14 @@ const (
 	//
 	// 5ms, 10ms, 20ms, 40ms, 80ms, 160ms, 320ms, 640ms, 1.3s, 2.6s, 5.1s, 10.2s, 20.4s, 41s, 82s
 	maxRetries = 15
+	// name of the estimator controller finalizer
+	EstimatorControllerFinalizerName = "estimator.karmada.install.firefly.io/finalizer"
 )
 
 // NewEstimatorController returns a new *Controller.
 func NewEstimatorController(
 	karmadaKubeClient clientset.Interface,
+	karmadaClient karmadaversioned.Interface,
 	clusterInformer clusterinformers.ClusterInformer,
 	estimatorNamespace string,
 	karmadaName string,
@@ -71,6 +78,7 @@ func NewEstimatorController(
 
 	ctrl := &EstimatorController{
 		karmadaKubeClient:    karmadaKubeClient,
+		karmadaClient:        karmadaClient,
 		clustersLister:       clusterInformer.Lister(),
 		clustersSynced:       clusterInformer.Informer().HasSynced,
 		estimatorNamespace:   estimatorNamespace,
@@ -99,6 +107,7 @@ func NewEstimatorController(
 
 type EstimatorController struct {
 	karmadaKubeClient clientset.Interface
+	karmadaClient     karmadaversioned.Interface
 	eventBroadcaster  record.EventBroadcaster
 	eventRecorder     record.EventRecorder
 
@@ -163,7 +172,7 @@ func (ctrl *EstimatorController) processNextWorkItem(ctx context.Context) bool {
 	}
 	defer ctrl.queue.Done(key)
 
-	err := ctrl.syncCluster(ctx, key.(string))
+	err := ctrl.syncEstimator(ctx, key.(string))
 	ctrl.handleErr(err, key)
 
 	return true
@@ -236,7 +245,7 @@ func (ctrl *EstimatorController) handleErr(err error, key interface{}) {
 	}
 
 	if ctrl.queue.NumRequeues(key) < maxRetries {
-		klog.V(2).InfoS("Error syncing cluster, retrying", "cluster", klog.KRef("", key.(string)), "err", err)
+		klog.V(2).InfoS("Error syncing estimator, retrying", "cluster", klog.KRef("", key.(string)), "err", err)
 		ctrl.queue.AddRateLimited(key)
 		return
 	}
@@ -246,11 +255,11 @@ func (ctrl *EstimatorController) handleErr(err error, key interface{}) {
 	ctrl.queue.Forget(key)
 }
 
-func (ctrl *EstimatorController) syncCluster(ctx context.Context, key string) error {
+func (ctrl *EstimatorController) syncEstimator(ctx context.Context, key string) error {
 	startTime := time.Now()
-	klog.V(4).InfoS("Started syncing cluster", "cluster", klog.KRef("", key), "startTime", startTime)
+	klog.V(4).InfoS("Started syncing estimator", "cluster", klog.KRef("", key), "startTime", startTime)
 	defer func() {
-		klog.V(4).InfoS("Finished syncing cluster", "cluster", klog.KRef("", key), "duration", time.Since(startTime))
+		klog.V(4).InfoS("Finished syncing estimator", "cluster", klog.KRef("", key), "duration", time.Since(startTime))
 	}()
 
 	cluster, err := ctrl.clustersLister.Get(key)
@@ -262,10 +271,54 @@ func (ctrl *EstimatorController) syncCluster(ctx context.Context, key string) er
 		return err
 	}
 
+	// Deep-copy otherwise we are mutating our cache.
+	cluster = cluster.DeepCopy()
+	// examine DeletionTimestamp to determine if object is under deletion
+	if cluster.DeletionTimestamp.IsZero() {
+		// The object is not being deleted, so if it does not have our finalizer,
+		// then lets add the finalizer and update the object. This is equivalent
+		// registering our finalizer.
+		if !controllerutil.ContainsFinalizer(cluster, EstimatorControllerFinalizerName) {
+			controllerutil.AddFinalizer(cluster, EstimatorControllerFinalizerName)
+			cluster, err = ctrl.karmadaClient.ClusterV1alpha1().Clusters().Update(ctx, cluster, metav1.UpdateOptions{})
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		// The object is being deleted
+		if controllerutil.ContainsFinalizer(cluster, EstimatorControllerFinalizerName) {
+			// our finalizer is present, so lets remove the orpand estimator
+			karmada, err := ctrl.fireflyKarmadaLister.Karmadas(ctrl.estimatorNamespace).Get(ctrl.karmadaName)
+			if err != nil {
+				if errors.IsNotFound(err) {
+					klog.V(2).InfoS("Karmada has been deleted, the estimator will be deleted by the gc controller of host cluster",
+						"karmada", klog.KRef(ctrl.estimatorNamespace, ctrl.karmadaName),
+						"cluster", cluster.Name)
+					return nil
+				}
+				return err
+			}
+			if err := ctrl.RemoveEstimator(ctx, karmada, cluster); err != nil {
+				// if fail to delete the external dependency here, return with error
+				// so that it can be retried
+				return err
+			}
+
+			// remove our finalizer from the list and update it.
+			controllerutil.RemoveFinalizer(cluster, EstimatorControllerFinalizerName)
+			// Stop reconciliation as the item is being deleted
+			return nil
+		}
+	}
+
 	karmada, err := ctrl.fireflyKarmadaLister.Karmadas(ctrl.estimatorNamespace).Get(ctrl.karmadaName)
-	if errors.IsNotFound(err) {
-		klog.V(2).InfoS("Karmada has been deleted", "karmada", klog.KRef(ctrl.estimatorNamespace, ctrl.karmadaName))
-		return nil
+	if err != nil {
+		if errors.IsNotFound(err) {
+			klog.V(2).InfoS("Karmada has been deleted", "karmada", klog.KRef(ctrl.estimatorNamespace, ctrl.karmadaName))
+			return nil
+		}
+		return err
 	}
 
 	if karmada.DeletionTimestamp != nil {
@@ -274,7 +327,10 @@ func (ctrl *EstimatorController) syncCluster(ctx context.Context, key string) er
 	}
 
 	klog.InfoS("Syncing estimator", "cluster", cluster.Name)
+	return ctrl.EnsureEstimator(ctx, karmada, cluster)
+}
 
+func (ctrl *EstimatorController) EnsureEstimator(ctx context.Context, karmada *installv1alpha1.Karmada, cluster *clusterv1alpha1.Cluster) error {
 	if err := ctrl.EnsureEstimatorKubeconfigSecret(ctx, karmada, cluster); err != nil {
 		return err
 	}
@@ -287,4 +343,19 @@ func (ctrl *EstimatorController) syncCluster(ctx context.Context, key string) er
 		return err
 	}
 	return nil
+}
+
+func (ctrl *EstimatorController) RemoveEstimator(ctx context.Context, karmada *installv1alpha1.Karmada, cluster *clusterv1alpha1.Cluster) error {
+	estimatorName := GenerateEstimatorName(karmada.Name, defaultEstimatorServicePrefix, cluster.Name)
+	err := ctrl.fireflyKubeClient.CoreV1().Services(karmada.Namespace).Delete(ctx, estimatorName, metav1.DeleteOptions{})
+	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+	err = ctrl.fireflyKubeClient.AppsV1().Deployments(karmada.Namespace).Delete(ctx, estimatorName, metav1.DeleteOptions{})
+	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+	secretName := GenerateEstimatorKubeConfigSecretName(karmada.Name, defaultEstimatorServicePrefix, cluster.Name)
+	err = ctrl.fireflyKubeClient.CoreV1().Secrets(karmada.Namespace).Delete(ctx, secretName, metav1.DeleteOptions{})
+	return client.IgnoreNotFound(err)
 }

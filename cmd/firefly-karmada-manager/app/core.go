@@ -29,6 +29,7 @@ import (
 func startEstimatorController(ctx context.Context, controllerContext ControllerContext) (controller.Interface, bool, error) {
 	ctrl, err := estimator.NewEstimatorController(
 		controllerContext.KarmadaClientBuilder.ClientOrDie("firefly-estimator-controller"),
+		controllerContext.KarmadaClientBuilder.KarmadaClientOrDie("firefly-estimator-controller"),
 		controllerContext.KarmadaInformerFactory.Cluster().V1alpha1().Clusters(),
 		controllerContext.EstimatorNamespace,
 		controllerContext.KarmadaName,

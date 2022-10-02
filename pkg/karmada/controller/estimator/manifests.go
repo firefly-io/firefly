@@ -21,6 +21,10 @@ import (
 	maputil "github.com/carlory/firefly/pkg/util/map"
 )
 
+const (
+	defaultEstimatorServicePrefix = "karmada-scheduler-estimator"
+)
+
 func (ctrl *EstimatorController) KubeConfigFromSecret(ctx context.Context, cluster *clusterv1alpha1.Cluster) (*clientcmdapi.Config, error) {
 	credentials, err := ctrl.karmadaKubeClient.CoreV1().Secrets(cluster.Spec.SecretRef.Namespace).Get(ctx, cluster.Spec.SecretRef.Name, metav1.GetOptions{})
 	if err != nil {
@@ -71,10 +75,10 @@ func (ctrl *EstimatorController) EnsureEstimatorKubeconfigSecret(ctx context.Con
 	if err != nil {
 		return err
 	}
-	estimatorName := GenerateEstimatorServiceName(karmada.Name, "karmada-scheduler-estimator", cluster.Name)
+	secretName := GenerateEstimatorKubeConfigSecretName(karmada.Name, defaultEstimatorServicePrefix, cluster.Name)
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-kubeconfig", estimatorName),
+			Name:      secretName,
 			Namespace: karmada.Namespace,
 		},
 		Data: map[string][]byte{
@@ -86,7 +90,7 @@ func (ctrl *EstimatorController) EnsureEstimatorKubeconfigSecret(ctx context.Con
 }
 
 func (ctrl *EstimatorController) EnsureEstimatorService(ctx context.Context, karmada *installv1alpha1.Karmada, cluster *clusterv1alpha1.Cluster) error {
-	estimatorName := GenerateEstimatorServiceName(karmada.Name, "karmada-scheduler-estimator", cluster.Name)
+	estimatorName := GenerateEstimatorName(karmada.Name, defaultEstimatorServicePrefix, cluster.Name)
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      estimatorName,
@@ -114,7 +118,7 @@ func (ctrl *EstimatorController) EnsureEstimatorService(ctx context.Context, kar
 }
 
 func (ctrl *EstimatorController) EnsureEstimatorDeployment(ctx context.Context, karmada *installv1alpha1.Karmada, cluster *clusterv1alpha1.Cluster) error {
-	estimatorName := GenerateEstimatorServiceName(karmada.Name, "karmada-scheduler-estimator", cluster.Name)
+	estimatorName := GenerateEstimatorName(karmada.Name, defaultEstimatorServicePrefix, cluster.Name)
 	repository := karmada.Spec.ImageRepository
 	version := karmada.Spec.KarmadaVersion
 	estimator := karmada.Spec.Scheduler.KarmadaSchedulerEstimator
@@ -201,7 +205,12 @@ func (ctrl *EstimatorController) EnsureEstimatorDeployment(ctx context.Context, 
 	return clientutil.CreateOrUpdateDeployment(ctrl.fireflyKubeClient, deployment)
 }
 
-// GenerateEstimatorServiceName generates the gRPC scheduler estimator service name which belongs to a cluster.
-func GenerateEstimatorServiceName(karmadaName, estimatorServicePrefix, clusterName string) string {
+// GenerateEstimatorName generates the gRPC scheduler estimator service name which belongs to a cluster.
+func GenerateEstimatorName(karmadaName, estimatorServicePrefix, clusterName string) string {
 	return fmt.Sprintf("%s-%s", estimatorServicePrefix, clusterName)
+}
+
+// GenerateEstimatorKubeConfigName generates the secret name which holds kubeconfig content.
+func GenerateEstimatorKubeConfigSecretName(karmadaName, estimatorServicePrefix, clusterName string) string {
+	return fmt.Sprintf("%s-%s-kubeconfig", estimatorServicePrefix, clusterName)
 }
