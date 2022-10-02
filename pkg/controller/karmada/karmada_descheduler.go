@@ -23,6 +23,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -36,6 +37,10 @@ import (
 
 func (ctrl *KarmadaController) EnsureKarmadaDescheduler(karmada *installv1alpha1.Karmada) error {
 	enabled := *karmada.Spec.Scheduler.KarmadaDescheduler.Enable
+	if version.CompareKubeAwareVersionStrings("v1.1.0", karmada.Spec.KarmadaVersion) < 0 {
+		enabled = false
+	}
+
 	if enabled {
 		return ctrl.EnsureKarmadaDeschedulerDeployment(karmada)
 	}
