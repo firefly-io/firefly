@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strconv"
 	"time"
 
 	clusterv1alpha1 "github.com/karmada-io/karmada/pkg/apis/cluster/v1alpha1"
@@ -212,15 +213,28 @@ func (ctrl *EstimatorController) deleteCluster(obj interface{}) {
 func (ctrl *EstimatorController) syncKarmada(old, cur interface{}) {
 	oldKarmada := old.(*installv1alpha1.Karmada)
 	curKarmada := cur.(*installv1alpha1.Karmada)
-	oldEstimator := oldKarmada.Spec.Scheduler.KarmadaSchedulerEstimator
-	curEstimator := curKarmada.Spec.Scheduler.KarmadaSchedulerEstimator
+
 	klog.V(4).InfoS("Sync karmada", "karmada", klog.KObj(oldKarmada))
 
 	var needUpdate bool
+
+	oldEstimator := oldKarmada.Spec.Scheduler.KarmadaSchedulerEstimator
+	curEstimator := curKarmada.Spec.Scheduler.KarmadaSchedulerEstimator
 	if !reflect.DeepEqual(oldEstimator, curEstimator) ||
 		(oldEstimator.ImageTag == "" && oldKarmada.Spec.KarmadaVersion != curKarmada.Spec.KarmadaVersion) {
 		needUpdate = true
 	}
+
+	oldSchedulerArgs := oldKarmada.Spec.Scheduler.KarmadaScheduler.ExtraArgs
+	curSchedulerArgs := curKarmada.Spec.Scheduler.KarmadaScheduler.ExtraArgs
+	if !reflect.DeepEqual(oldSchedulerArgs, curSchedulerArgs) {
+		oldEstimatorArg := oldSchedulerArgs["disable-scheduler-estimator-in-pull-mode"]
+		curEstimatorArg := curSchedulerArgs["disable-scheduler-estimator-in-pull-mode"]
+		if oldEstimatorArg != curEstimatorArg {
+			needUpdate = true
+		}
+	}
+
 	if !needUpdate {
 		return
 	}
@@ -324,6 +338,20 @@ func (ctrl *EstimatorController) syncEstimator(ctx context.Context, key string) 
 	if karmada.DeletionTimestamp != nil {
 		klog.V(2).InfoS("Karmada is terminating", "karmada", klog.KRef(ctrl.estimatorNamespace, ctrl.karmadaName))
 		return nil
+	}
+
+	if cluster.Spec.SyncMode == clusterv1alpha1.Pull {
+		schedulerArgs := karmada.Spec.Scheduler.KarmadaScheduler.ExtraArgs
+		disableEstimatorVal, ok := schedulerArgs["disable-scheduler-estimator-in-pull-mode"]
+		if ok {
+			disableEstimator, err := strconv.ParseBool(disableEstimatorVal)
+			if err != nil {
+				return err
+			}
+			if disableEstimator {
+				return nil
+			}
+		}
 	}
 
 	klog.InfoS("Syncing estimator", "cluster", cluster.Name)
