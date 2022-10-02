@@ -36,7 +36,7 @@ func (ctrl *KarmadaController) EnsureKarmadaSchedulerDeployment(karmada *install
 		"bind-address":               "0.0.0.0",
 		"kubeconfig":                 "/etc/kubeconfig",
 		"secure-port":                "10351",
-		"enable-scheduler-estimator": "false",
+		"enable-scheduler-estimator": "true",
 		"v":                          "4",
 	}
 	featureGates := maputil.MergeBoolMaps(karmada.Spec.FeatureGates, scheduler.FeatureGates)

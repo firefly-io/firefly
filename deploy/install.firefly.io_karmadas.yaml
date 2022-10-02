@@ -704,6 +704,11 @@ spec:
                     description: KarmadaScheduler holds settings to karmada-descheduler
                       conponent of the karmada.
                     properties:
+                      enable:
+                        description: Enable indicates whether the karmada-descheduler
+                          conponent should be deployed. This is a pointer to distinguish
+                          between explicit zero and not specified. Defaults to false.
+                        type: boolean
                       extraArgs:
                         additionalProperties:
                           type: string

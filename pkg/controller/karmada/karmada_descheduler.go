@@ -1,12 +1,14 @@
 package karmada
 
 import (
+	"context"
 	"fmt"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
@@ -17,7 +19,17 @@ import (
 )
 
 func (ctrl *KarmadaController) EnsureKarmadaDescheduler(karmada *installv1alpha1.Karmada) error {
-	return ctrl.EnsureKarmadaDeschedulerDeployment(karmada)
+	enabled := *karmada.Spec.Scheduler.KarmadaDescheduler.Enable
+	if enabled {
+		return ctrl.EnsureKarmadaDeschedulerDeployment(karmada)
+	}
+	return ctrl.RemoveKarmadaDescheduler(karmada)
+}
+
+func (ctrl *KarmadaController) RemoveKarmadaDescheduler(karmada *installv1alpha1.Karmada) error {
+	componentName := util.ComponentName(constants.KarmadaComponentDescheduler, karmada.Name)
+	err := ctrl.client.AppsV1().Deployments(karmada.Namespace).Delete(context.TODO(), componentName, metav1.DeleteOptions{})
+	return client.IgnoreNotFound(err)
 }
 
 func (ctrl *KarmadaController) EnsureKarmadaDeschedulerDeployment(karmada *installv1alpha1.Karmada) error {

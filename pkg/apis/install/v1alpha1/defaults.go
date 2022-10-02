@@ -64,6 +64,9 @@ func SetDefaults_Karmada(obj *Karmada) {
 	if scheduler.KarmadaScheduler.Replicas == nil {
 		scheduler.KarmadaScheduler.Replicas = utilpointer.Int32(1)
 	}
+	if scheduler.KarmadaDescheduler.Enable == nil {
+		scheduler.KarmadaDescheduler.Enable = utilpointer.Bool(false)
+	}
 	if scheduler.KarmadaDescheduler.Replicas == nil {
 		scheduler.KarmadaDescheduler.Replicas = utilpointer.Int32(1)
 	}

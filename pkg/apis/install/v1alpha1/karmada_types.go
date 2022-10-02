@@ -488,6 +488,12 @@ type KarmadaSchedulerComponent struct {
 
 // KarmadaDeschedulerComponent holds settings to karmada-descheduler conponent of the karmada.
 type KarmadaDeschedulerComponent struct {
+	// Enable indicates whether the karmada-descheduler conponent should be deployed.
+	// This is a pointer to distinguish between explicit zero and not specified.
+	// Defaults to false.
+	// +optional
+	Enable *bool `json:"enable,omitempty"`
+
 	// ImageMeta allows to customize the image used for the karmada-descheduler component
 	ImageMeta `json:",inline"`
 
