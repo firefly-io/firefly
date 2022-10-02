@@ -56,6 +56,13 @@ func (ctrl *KarmadaController) EnsureKubeControllerManagerDeployment(karmada *in
 	if kcm.Controllers != nil {
 		defaultArgs["controllers"] = strings.Join(kcm.Controllers, ",")
 	}
+	for feature, enabled := range kcm.FeatureGates {
+		if defaultArgs["feature-gates"] == "" {
+			defaultArgs["feature-gates"] = fmt.Sprintf("%s=%t", feature, enabled)
+		} else {
+			defaultArgs["feature-gates"] = fmt.Sprintf("%s,%s=%t", defaultArgs["feature-gates"], feature, enabled)
+		}
+	}
 	computedArgs := maputil.MergeStringMaps(defaultArgs, kcm.ExtraArgs)
 	args := maputil.ConvertToCommandOrArgs(computedArgs)
 

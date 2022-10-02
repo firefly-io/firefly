@@ -120,6 +120,13 @@ func (ctrl *KarmadaController) EnsureKubeAPIServerDeployment(karmada *installv1a
 		"tls-cert-file":                      "/etc/kubernetes/pki/apiserver.crt",
 		"tls-private-key-file":               "/etc/kubernetes/pki/apiserver.key",
 	}
+	for feature, enabled := range server.FeatureGates {
+		if defaultArgs["feature-gates"] == "" {
+			defaultArgs["feature-gates"] = fmt.Sprintf("%s=%t", feature, enabled)
+		} else {
+			defaultArgs["feature-gates"] = fmt.Sprintf("%s,%s=%t", defaultArgs["feature-gates"], feature, enabled)
+		}
+	}
 	computedArgs := maputil.MergeStringMaps(defaultArgs, server.ExtraArgs)
 	args := maputil.ConvertToCommandOrArgs(computedArgs)
 

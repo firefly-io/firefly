@@ -6,6 +6,17 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
+// MergeBoolMaps merges two bool maps.
+func MergeBoolMaps(maps ...map[string]bool) map[string]bool {
+	result := map[string]bool{}
+	for _, m := range maps {
+		for key, value := range m {
+			result[key] = value
+		}
+	}
+	return result
+}
+
 // MergeStringMaps merges two string maps.
 func MergeStringMaps(maps ...map[string]string) map[string]string {
 	result := map[string]string{}

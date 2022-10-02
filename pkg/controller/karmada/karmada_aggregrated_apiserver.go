@@ -93,6 +93,14 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerDeployment(karmad
 		"tls-cert-file":             "/etc/kubernetes/pki/apiserver.crt",
 		"tls-private-key-file":      "/etc/kubernetes/pki/apiserver.key",
 	}
+	featureGates := maputil.MergeBoolMaps(karmada.Spec.FeatureGates, server.FeatureGates)
+	for feature, enabled := range featureGates {
+		if defaultArgs["feature-gates"] == "" {
+			defaultArgs["feature-gates"] = fmt.Sprintf("%s=%t", feature, enabled)
+		} else {
+			defaultArgs["feature-gates"] = fmt.Sprintf("%s,%s=%t", defaultArgs["feature-gates"], feature, enabled)
+		}
+	}
 	computedArgs := maputil.MergeStringMaps(defaultArgs, server.ExtraArgs)
 	args := maputil.ConvertToCommandOrArgs(computedArgs)
 

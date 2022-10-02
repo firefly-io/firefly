@@ -38,11 +38,18 @@ func (ctrl *KarmadaController) EnsureKarmadaControllerManagerDeployment(karmada 
 		"kubeconfig":                      "/etc/kubeconfig",
 		"cluster-status-update-frequency": "10s",
 		"secure-port":                     "10357",
-		"feature-gates":                   "PropagateDeps=true",
 		"v":                               "4",
 	}
 	if kcm.Controllers != nil {
 		defaultArgs["controllers"] = strings.Join(kcm.Controllers, ",")
+	}
+	featureGates := maputil.MergeBoolMaps(karmada.Spec.FeatureGates, kcm.FeatureGates)
+	for feature, enabled := range featureGates {
+		if defaultArgs["feature-gates"] == "" {
+			defaultArgs["feature-gates"] = fmt.Sprintf("%s=%t", feature, enabled)
+		} else {
+			defaultArgs["feature-gates"] = fmt.Sprintf("%s,%s=%t", defaultArgs["feature-gates"], feature, enabled)
+		}
 	}
 	computedArgs := maputil.MergeStringMaps(defaultArgs, kcm.ExtraArgs)
 	args := maputil.ConvertToCommandOrArgs(computedArgs)

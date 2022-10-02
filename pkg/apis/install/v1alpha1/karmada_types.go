@@ -94,6 +94,10 @@ type KarmadaSpec struct {
 	ImageRepository string `json:"imageRepository,omitempty"`
 
 	// FeatureGates enabled by the user.
+	// If you don't know that a feature gate should be applied to which components, you can
+	// use this field to enable or disable the feature gate for all the components of the karmada instance.
+	// It can be overridden by the component-specific feature gate settings.
+	// More info: https://github.com/karmada-io/karmada/blob/master/pkg/features/features.go
 	// +optional
 	FeatureGates map[string]bool `json:"featureGates,omitempty"`
 }
@@ -205,6 +209,11 @@ type KubeAPIServerComponent struct {
 	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 	// +optional
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// FeatureGates enabled by the user.
+	// More info: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
+	// +optional
+	FeatureGates map[string]bool `json:"featureGates,omitempty"`
 }
 
 // KarmadaAggregratedAPIServerComponent holds settings to karmada-aggregated-apiserver component of the karmada.
@@ -237,6 +246,12 @@ type KarmadaAggregratedAPIServerComponent struct {
 	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 	// +optional
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// FeatureGates enabled by the user.
+	// - CustomizedClusterResourceModeling: https://karmada.io/docs/userguide/scheduling/cluster-resources#start-to-use-cluster-resource-models
+	// More info: https://github.com/karmada-io/karmada/blob/master/pkg/features/features.go
+	// +optional
+	FeatureGates map[string]bool `json:"featureGates,omitempty"`
 }
 
 // WebhookComponent holds settings to webhook component of the karmada.
@@ -355,6 +370,11 @@ type KubeControllerManagerComponent struct {
 	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 	// +optional
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// FeatureGates enabled by the user.
+	// More info: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/
+	// +optional
+	FeatureGates map[string]bool `json:"featureGates,omitempty"`
 }
 
 // KarmadaControllerManagerComponent holds settings to the karmada-controller-manager component of the karmada.
@@ -402,6 +422,15 @@ type KarmadaControllerManagerComponent struct {
 	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 	// +optional
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// FeatureGates enabled by the user.
+	// - Failover: https://karmada.io/docs/userguide/failover/#failover
+	// - GracefulEviction: https://karmada.io/docs/userguide/failover/#graceful-eviction-feature
+	// - PropagateDeps: https://karmada.io/docs/userguide/scheduling/propagate-dependencies
+	// - CustomizedClusterResourceModeling: https://karmada.io/docs/userguide/scheduling/cluster-resources#start-to-use-cluster-resource-models
+	// More info: https://github.com/karmada-io/karmada/blob/master/pkg/features/features.go
+	// +optional
+	FeatureGates map[string]bool `json:"featureGates,omitempty"`
 }
 
 // SchedulerComponent holds settings to scheduler components of the cluster.
@@ -449,6 +478,12 @@ type KarmadaSchedulerComponent struct {
 	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 	// +optional
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// FeatureGates enabled by the user.
+	// - CustomizedClusterResourceModeling: https://karmada.io/docs/userguide/scheduling/cluster-resources#start-to-use-cluster-resource-models
+	// More info: https://github.com/karmada-io/karmada/blob/master/pkg/features/features.go
+	// +optional
+	FeatureGates map[string]bool `json:"featureGates,omitempty"`
 }
 
 // KarmadaDeschedulerComponent holds settings to karmada-descheduler conponent of the karmada.

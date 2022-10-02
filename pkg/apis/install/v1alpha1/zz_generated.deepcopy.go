@@ -186,6 +186,13 @@ func (in *KarmadaAggregratedAPIServerComponent) DeepCopyInto(out *KarmadaAggregr
 		}
 	}
 	in.Resources.DeepCopyInto(&out.Resources)
+	if in.FeatureGates != nil {
+		in, out := &in.FeatureGates, &out.FeatureGates
+		*out = make(map[string]bool, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 
@@ -221,6 +228,13 @@ func (in *KarmadaControllerManagerComponent) DeepCopyInto(out *KarmadaController
 		}
 	}
 	in.Resources.DeepCopyInto(&out.Resources)
+	if in.FeatureGates != nil {
+		in, out := &in.FeatureGates, &out.FeatureGates
+		*out = make(map[string]bool, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 
@@ -314,6 +328,13 @@ func (in *KarmadaSchedulerComponent) DeepCopyInto(out *KarmadaSchedulerComponent
 		}
 	}
 	in.Resources.DeepCopyInto(&out.Resources)
+	if in.FeatureGates != nil {
+		in, out := &in.FeatureGates, &out.FeatureGates
+		*out = make(map[string]bool, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 
@@ -461,6 +482,13 @@ func (in *KubeAPIServerComponent) DeepCopyInto(out *KubeAPIServerComponent) {
 		copy(*out, *in)
 	}
 	in.Resources.DeepCopyInto(&out.Resources)
+	if in.FeatureGates != nil {
+		in, out := &in.FeatureGates, &out.FeatureGates
+		*out = make(map[string]bool, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 
@@ -496,6 +524,13 @@ func (in *KubeControllerManagerComponent) DeepCopyInto(out *KubeControllerManage
 		}
 	}
 	in.Resources.DeepCopyInto(&out.Resources)
+	if in.FeatureGates != nil {
+		in, out := &in.FeatureGates, &out.FeatureGates
+		*out = make(map[string]bool, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 

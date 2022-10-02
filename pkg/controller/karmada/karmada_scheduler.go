@@ -37,8 +37,15 @@ func (ctrl *KarmadaController) EnsureKarmadaSchedulerDeployment(karmada *install
 		"kubeconfig":                 "/etc/kubeconfig",
 		"secure-port":                "10351",
 		"enable-scheduler-estimator": "false",
-		"feature-gates":              "Failover=true",
 		"v":                          "4",
+	}
+	featureGates := maputil.MergeBoolMaps(karmada.Spec.FeatureGates, scheduler.FeatureGates)
+	for feature, enabled := range featureGates {
+		if defaultArgs["feature-gates"] == "" {
+			defaultArgs["feature-gates"] = fmt.Sprintf("%s=%t", feature, enabled)
+		} else {
+			defaultArgs["feature-gates"] = fmt.Sprintf("%s,%s=%t", defaultArgs["feature-gates"], feature, enabled)
+		}
 	}
 	computedArgs := maputil.MergeStringMaps(defaultArgs, scheduler.ExtraArgs)
 	args := maputil.ConvertToCommandOrArgs(computedArgs)
