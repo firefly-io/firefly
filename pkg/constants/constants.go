@@ -18,6 +18,8 @@ const (
 	KarmadaComponentKubeControllerManager = "karmada-kube-controller-manager"
 	// KarmadaComponentScheduler defines the name of the karmada-scheduler component
 	KarmadaComponentScheduler = "karmada-scheduler"
+	// KarmadaComponentDescheduler defines the name of the karmada-descheduler component
+	KarmadaComponentDescheduler = "karmada-descheduler"
 	// KarmadaComponentControllerManager defines the name of the karmada-controller-manager component
 	KarmadaComponentControllerManager = "karmada-controller-manager"
 	// KarmadaComponentWebhook defines the name of the karmada-webhook component

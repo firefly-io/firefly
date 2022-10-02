@@ -345,6 +345,9 @@ func (ctrl *KarmadaController) EnsureScheduler(karmada *installv1alpha1.Karmada)
 	if err := ctrl.EnsureKarmadaScheduler(karmada); err != nil {
 		return err
 	}
+	if err := ctrl.EnsureKarmadaDescheduler(karmada); err != nil {
+		return err
+	}
 	return nil
 }
 
