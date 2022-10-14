@@ -75,6 +75,9 @@ func SetDefaults_Karmada(obj *Karmada) {
 	if controllerManager.KarmadaControllerManager.Replicas == nil {
 		controllerManager.KarmadaControllerManager.Replicas = utilpointer.Int32(1)
 	}
+	if controllerManager.FireflyKarmadaManager.Replicas == nil {
+		controllerManager.FireflyKarmadaManager.Replicas = utilpointer.Int32(1)
+	}
 
 	scheduler := &obj.Spec.Scheduler
 	if scheduler.KarmadaScheduler.Replicas == nil {

@@ -19,6 +19,7 @@ package karmada
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -31,6 +32,7 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/util"
+	maputil "github.com/carlory/firefly/pkg/util/map"
 )
 
 func (ctrl *KarmadaController) EnsureFireflyKarmadaManager(karmada *installv1alpha1.Karmada) error {
@@ -118,6 +120,28 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerDeployment(karmada *in
 	componentName := util.ComponentName(constants.FireflyComponentKarmadaManager, karmada.Name)
 	repository := karmada.Spec.ImageRepository
 
+	fkm := karmada.Spec.ControllerManager.FireflyKarmadaManager
+	tag := "latest"
+	if fkm.ImageRepository != "" {
+		repository = fkm.ImageRepository
+	}
+	if fkm.ImageTag != "" {
+		tag = fkm.ImageTag
+	}
+
+	defaultArgs := map[string]string{
+		"karmada-kubeconfig":        "/etc/karmada/kubeconfig",
+		"authentication-kubeconfig": "/etc/karmada/kubeconfig",
+		"authorization-kubeconfig":  "/etc/karmada/kubeconfig",
+		"estimator-namespace":       karmada.Namespace,
+		"karmada-name":              karmada.Name,
+	}
+	if fkm.Controllers != nil {
+		defaultArgs["controllers"] = strings.Join(fkm.Controllers, ",")
+	}
+
+	args := maputil.ConvertToCommandOrArgs(defaultArgs)
+
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      componentName,
@@ -150,21 +174,10 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerDeployment(karmada *in
 					Containers: []corev1.Container{
 						{
 							Name:            componentName,
-							Image:           util.ComponentImageName(repository, constants.FireflyComponentKarmadaManager, "latest"),
+							Image:           util.ComponentImageName(repository, constants.FireflyComponentKarmadaManager, tag),
 							ImagePullPolicy: corev1.PullAlways,
-							Command: []string{
-								"/bin/firefly-karmada-manager",
-								"--karmada-kubeconfig",
-								"/etc/karmada/kubeconfig",
-								"--authentication-kubeconfig",
-								"/etc/karmada/kubeconfig",
-								"--authorization-kubeconfig",
-								"/etc/karmada/kubeconfig",
-								"--estimator-namespace",
-								karmada.Namespace,
-								"--karmada-name",
-								karmada.Name,
-							},
+							Command:         []string{"firefly-karmada-manager"},
+							Args:            args,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "karmada-kubeconfig",

@@ -59,7 +59,7 @@ func (ctrl *KarmadaController) EnsureKarmadaControllerManagerDeployment(karmada 
 	if kcm.Controllers != nil {
 		defaultArgs["controllers"] = strings.Join(kcm.Controllers, ",")
 	}
-	featureGates := maputil.MergeBoolMaps(karmada.Spec.FeatureGates, kcm.FeatureGates)
+	featureGates := karmada.Spec.FeatureGates
 	for feature, enabled := range featureGates {
 		if defaultArgs["feature-gates"] == "" {
 			defaultArgs["feature-gates"] = fmt.Sprintf("%s=%t", feature, enabled)

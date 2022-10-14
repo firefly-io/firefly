@@ -96,7 +96,10 @@ type KarmadaSpec struct {
 	// FeatureGates enabled by the user.
 	// If you don't know that a feature gate should be applied to which components, you can
 	// use this field to enable or disable the feature gate for all the components of the karmada instance.
-	// It can be overridden by the component-specific feature gate settings.
+	// - Failover: https://karmada.io/docs/userguide/failover/#failover
+	// - GracefulEviction: https://karmada.io/docs/userguide/failover/#graceful-eviction-feature
+	// - PropagateDeps: https://karmada.io/docs/userguide/scheduling/propagate-dependencies
+	// - CustomizedClusterResourceModeling: https://karmada.io/docs/userguide/scheduling/cluster-resources#start-to-use-cluster-resource-models
 	// More info: https://github.com/karmada-io/karmada/blob/master/pkg/features/features.go
 	// +optional
 	FeatureGates map[string]bool `json:"featureGates,omitempty"`
@@ -246,12 +249,6 @@ type KarmadaAggregratedAPIServerComponent struct {
 	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 	// +optional
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
-
-	// FeatureGates enabled by the user.
-	// - CustomizedClusterResourceModeling: https://karmada.io/docs/userguide/scheduling/cluster-resources#start-to-use-cluster-resource-models
-	// More info: https://github.com/karmada-io/karmada/blob/master/pkg/features/features.go
-	// +optional
-	FeatureGates map[string]bool `json:"featureGates,omitempty"`
 }
 
 // WebhookComponent holds settings to webhook component of the karmada.
@@ -299,6 +296,9 @@ type ControllerManagerComponent struct {
 
 	// KarmadaControllerManager holds settings to karmada-controller-manager component of the karmada.
 	KarmadaControllerManager KarmadaControllerManagerComponent `json:"karmadaControllerManager,omitempty"`
+
+	// FireflyKarmadaManager holds settings to firefly-karmada-manager component of the karmada.
+	FireflyKarmadaManager FireflyKarmadaManagerComponent `json:"fireflyKarmadaManager,omitempty"`
 }
 
 // KubeControllerManagerComponent holds settings to kube-controller-manager component of the kubernetes.
@@ -379,7 +379,7 @@ type KubeControllerManagerComponent struct {
 
 // KarmadaControllerManagerComponent holds settings to the karmada-controller-manager component of the karmada.
 type KarmadaControllerManagerComponent struct {
-	// ImageMeta allows to customize the image used for the karmada-scheduler component
+	// ImageMeta allows to customize the image used for the karmada-controller-manager component
 	ImageMeta `json:",inline"`
 
 	// Number of desired pods. This is a pointer to distinguish between explicit
@@ -422,15 +422,32 @@ type KarmadaControllerManagerComponent struct {
 	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 	// +optional
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+}
 
-	// FeatureGates enabled by the user.
-	// - Failover: https://karmada.io/docs/userguide/failover/#failover
-	// - GracefulEviction: https://karmada.io/docs/userguide/failover/#graceful-eviction-feature
-	// - PropagateDeps: https://karmada.io/docs/userguide/scheduling/propagate-dependencies
-	// - CustomizedClusterResourceModeling: https://karmada.io/docs/userguide/scheduling/cluster-resources#start-to-use-cluster-resource-models
-	// More info: https://github.com/karmada-io/karmada/blob/master/pkg/features/features.go
+// FireflyKarmadaManagerComponent holds settings to the firefly-karmada-manager component of the karmada.
+type FireflyKarmadaManagerComponent struct {
+	// ImageMeta allows to customize the image used for the firefly-karmada-manager component
+	ImageMeta `json:",inline"`
+
+	// Number of desired pods. This is a pointer to distinguish between explicit
+	// zero and not specified. Defaults to 1.
 	// +optional
-	FeatureGates map[string]bool `json:"featureGates,omitempty"`
+	Replicas *int32 `json:"replicas,omitempty"`
+
+	// A list of controllers to enable. '*' enables all on-by-default controllers,
+	// 'foo' enables the controller named 'foo', '-foo' disables the controller named
+	// 'foo'.
+	//
+	// All controllers: estimator, node
+	// Disabled-by-default controllers:  (default [*])
+	//
+	// +optional
+	Controllers []string `json:"controllers,omitempty"`
+
+	// Compute Resources required by this component.
+	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+	// +optional
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 // SchedulerComponent holds settings to scheduler components of the cluster.
@@ -478,12 +495,6 @@ type KarmadaSchedulerComponent struct {
 	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 	// +optional
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
-
-	// FeatureGates enabled by the user.
-	// - CustomizedClusterResourceModeling: https://karmada.io/docs/userguide/scheduling/cluster-resources#start-to-use-cluster-resource-models
-	// More info: https://github.com/karmada-io/karmada/blob/master/pkg/features/features.go
-	// +optional
-	FeatureGates map[string]bool `json:"featureGates,omitempty"`
 }
 
 // KarmadaDeschedulerComponent holds settings to karmada-descheduler conponent of the karmada.

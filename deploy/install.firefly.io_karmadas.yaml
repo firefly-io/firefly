@@ -60,13 +60,6 @@ spec:
                           configuration. \n For supported flags, please see https://github.com/karmada-io/karmada/blob/master/cmd/aggregated-apiserver/app/options/options.go
                           for details."
                         type: object
-                      featureGates:
-                        additionalProperties:
-                          type: boolean
-                        description: 'FeatureGates enabled by the user. - CustomizedClusterResourceModeling:
-                          https://karmada.io/docs/userguide/scheduling/cluster-resources#start-to-use-cluster-resource-models
-                          More info: https://github.com/karmada-io/karmada/blob/master/pkg/features/features.go'
-                        type: object
                       imageRepository:
                         description: ImageRepository sets the container registry to
                           pull images from. if not set, the ImageRepository defined
@@ -209,6 +202,64 @@ spec:
                 description: ControllerManager contains extra settings for the controller
                   manager control plane component
                 properties:
+                  fireflyKarmadaManager:
+                    description: FireflyKarmadaManager holds settings to firefly-karmada-manager
+                      component of the karmada.
+                    properties:
+                      controllers:
+                        description: "A list of controllers to enable. '*' enables
+                          all on-by-default controllers, 'foo' enables the controller
+                          named 'foo', '-foo' disables the controller named 'foo'.
+                          \n All controllers: estimator, node Disabled-by-default
+                          controllers:  (default [*])"
+                        items:
+                          type: string
+                        type: array
+                      imageRepository:
+                        description: ImageRepository sets the container registry to
+                          pull images from. if not set, the ImageRepository defined
+                          in KarmadaSpec will be used instead.
+                        type: string
+                      imageTag:
+                        description: ImageTag allows to specify a tag for the image.
+                          In case this value is set, firefly does not change automatically
+                          the version of the above components during upgrades.
+                        type: string
+                      replicas:
+                        description: Number of desired pods. This is a pointer to
+                          distinguish between explicit zero and not specified. Defaults
+                          to 1.
+                        format: int32
+                        type: integer
+                      resources:
+                        description: 'Compute Resources required by this component.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                        properties:
+                          limits:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              x-kubernetes-int-or-string: true
+                            description: 'Limits describes the maximum amount of compute
+                              resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                            type: object
+                          requests:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              x-kubernetes-int-or-string: true
+                            description: 'Requests describes the minimum amount of
+                              compute resources required. If Requests is omitted for
+                              a container, it defaults to Limits if that is explicitly
+                              specified, otherwise to an implementation-defined value.
+                              More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                            type: object
+                        type: object
+                    type: object
                   karmadaControllerManager:
                     description: KarmadaControllerManager holds settings to karmada-controller-manager
                       component of the karmada.
@@ -243,16 +294,6 @@ spec:
                           do it, please confirm that you understand the risks of this
                           configuration. \n For supported flags, please see https://github.com/karmada-io/karmada/blob/master/cmd/controller-manager/app/options/options.go
                           for details."
-                        type: object
-                      featureGates:
-                        additionalProperties:
-                          type: boolean
-                        description: 'FeatureGates enabled by the user. - Failover:
-                          https://karmada.io/docs/userguide/failover/#failover - GracefulEviction:
-                          https://karmada.io/docs/userguide/failover/#graceful-eviction-feature
-                          - PropagateDeps: https://karmada.io/docs/userguide/scheduling/propagate-dependencies
-                          - CustomizedClusterResourceModeling: https://karmada.io/docs/userguide/scheduling/cluster-resources#start-to-use-cluster-resource-models
-                          More info: https://github.com/karmada-io/karmada/blob/master/pkg/features/features.go'
                         type: object
                       imageRepository:
                         description: ImageRepository sets the container registry to
@@ -669,8 +710,11 @@ spec:
                 description: 'FeatureGates enabled by the user. If you don''t know
                   that a feature gate should be applied to which components, you can
                   use this field to enable or disable the feature gate for all the
-                  components of the karmada instance. It can be overridden by the
-                  component-specific feature gate settings. More info: https://github.com/karmada-io/karmada/blob/master/pkg/features/features.go'
+                  components of the karmada instance. - Failover: https://karmada.io/docs/userguide/failover/#failover
+                  - GracefulEviction: https://karmada.io/docs/userguide/failover/#graceful-eviction-feature
+                  - PropagateDeps: https://karmada.io/docs/userguide/scheduling/propagate-dependencies
+                  - CustomizedClusterResourceModeling: https://karmada.io/docs/userguide/scheduling/cluster-resources#start-to-use-cluster-resource-models
+                  More info: https://github.com/karmada-io/karmada/blob/master/pkg/features/features.go'
                 type: object
               imageRepository:
                 description: ImageRepository sets the container registry to pull images
@@ -791,13 +835,6 @@ spec:
                           that you understand the risks of this configuration. \n
                           For supported flags, please see https://github.com/karmada-io/karmada/blob/master/cmd/scheduler/app/options/options.go
                           for details."
-                        type: object
-                      featureGates:
-                        additionalProperties:
-                          type: boolean
-                        description: 'FeatureGates enabled by the user. - CustomizedClusterResourceModeling:
-                          https://karmada.io/docs/userguide/scheduling/cluster-resources#start-to-use-cluster-resource-models
-                          More info: https://github.com/karmada-io/karmada/blob/master/pkg/features/features.go'
                         type: object
                       imageRepository:
                         description: ImageRepository sets the container registry to

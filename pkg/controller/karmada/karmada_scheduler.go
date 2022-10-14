@@ -55,7 +55,7 @@ func (ctrl *KarmadaController) EnsureKarmadaSchedulerDeployment(karmada *install
 		"enable-scheduler-estimator": "true",
 		"v":                          "4",
 	}
-	featureGates := maputil.MergeBoolMaps(karmada.Spec.FeatureGates, scheduler.FeatureGates)
+	featureGates := karmada.Spec.FeatureGates
 	for feature, enabled := range featureGates {
 		if defaultArgs["feature-gates"] == "" {
 			defaultArgs["feature-gates"] = fmt.Sprintf("%s=%t", feature, enabled)
