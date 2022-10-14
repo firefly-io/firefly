@@ -28,6 +28,10 @@ type FakeInstallV1alpha1 struct {
 	*testing.Fake
 }
 
+func (c *FakeInstallV1alpha1) Clusterpedias(namespace string) v1alpha1.ClusterpediaInterface {
+	return &FakeClusterpedias{c, namespace}
+}
+
 func (c *FakeInstallV1alpha1) Karmadas(namespace string) v1alpha1.KarmadaInterface {
 	return &FakeKarmadas{c, namespace}
 }

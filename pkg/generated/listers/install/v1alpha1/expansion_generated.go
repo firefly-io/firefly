@@ -18,6 +18,14 @@ limitations under the License.
 
 package v1alpha1
 
+// ClusterpediaListerExpansion allows custom methods to be added to
+// ClusterpediaLister.
+type ClusterpediaListerExpansion interface{}
+
+// ClusterpediaNamespaceListerExpansion allows custom methods to be added to
+// ClusterpediaNamespaceLister.
+type ClusterpediaNamespaceListerExpansion interface{}
+
 // KarmadaListerExpansion allows custom methods to be added to
 // KarmadaLister.
 type KarmadaListerExpansion interface{}

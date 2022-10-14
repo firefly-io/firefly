@@ -28,12 +28,17 @@ import (
 
 type InstallV1alpha1Interface interface {
 	RESTClient() rest.Interface
+	ClusterpediasGetter
 	KarmadasGetter
 }
 
 // InstallV1alpha1Client is used to interact with features provided by the install.firefly.io group.
 type InstallV1alpha1Client struct {
 	restClient rest.Interface
+}
+
+func (c *InstallV1alpha1Client) Clusterpedias(namespace string) ClusterpediaInterface {
+	return newClusterpedias(c, namespace)
 }
 
 func (c *InstallV1alpha1Client) Karmadas(namespace string) KarmadaInterface {

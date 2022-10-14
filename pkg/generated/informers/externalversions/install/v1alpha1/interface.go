@@ -24,6 +24,8 @@ import (
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
+	// Clusterpedias returns a ClusterpediaInformer.
+	Clusterpedias() ClusterpediaInformer
 	// Karmadas returns a KarmadaInformer.
 	Karmadas() KarmadaInformer
 }
@@ -37,6 +39,11 @@ type version struct {
 // New returns a new Interface.
 func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakListOptions internalinterfaces.TweakListOptionsFunc) Interface {
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
+}
+
+// Clusterpedias returns a ClusterpediaInformer.
+func (v *version) Clusterpedias() ClusterpediaInformer {
+	return &clusterpediaInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
 // Karmadas returns a KarmadaInformer.

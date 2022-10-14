@@ -53,6 +53,8 @@ func (f *genericInformer) Lister() cache.GenericLister {
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
 	// Group=install.firefly.io, Version=v1alpha1
+	case v1alpha1.SchemeGroupVersion.WithResource("clusterpedias"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Install().V1alpha1().Clusterpedias().Informer()}, nil
 	case v1alpha1.SchemeGroupVersion.WithResource("karmadas"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Install().V1alpha1().Karmadas().Informer()}, nil
 
