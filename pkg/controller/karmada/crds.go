@@ -18,14 +18,10 @@ package karmada
 
 import (
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/cli-runtime/pkg/resource"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/discovery/cached/memory"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/restmapper"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
+	utilresource "github.com/carlory/firefly/pkg/util/resource"
 )
 
 func (ctrl *KarmadaController) EnsureKarmadaCRDs(karmada *installv1alpha1.Karmada) error {
@@ -33,7 +29,7 @@ func (ctrl *KarmadaController) EnsureKarmadaCRDs(karmada *installv1alpha1.Karmad
 	if err != nil {
 		return err
 	}
-	result := resource.NewBuilder(clientGetter{restConfig: clientConfig}).
+	result := utilresource.NewBuilder(clientConfig).
 		Unstructured().
 		FilenameParam(false, &resource.FilenameOptions{Recursive: false, Filenames: []string{"./pkg/controller/karmada/crds"}}).
 		Flatten().Do()
@@ -49,29 +45,4 @@ func (ctrl *KarmadaController) EnsureKarmadaCRDs(karmada *installv1alpha1.Karmad
 		}
 		return nil
 	})
-}
-
-type clientGetter struct {
-	restConfig *rest.Config
-}
-
-func (c clientGetter) ToRESTConfig() (*rest.Config, error) {
-	return c.restConfig, nil
-}
-func (c clientGetter) ToDiscoveryClient() (discovery.CachedDiscoveryInterface, error) {
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(c.restConfig)
-	if err != nil {
-		return nil, err
-	}
-	return memory.NewMemCacheClient(discoveryClient), nil
-}
-
-func (c clientGetter) ToRESTMapper() (meta.RESTMapper, error) {
-	discoveryClient, err := c.ToDiscoveryClient()
-	if err != nil {
-		return nil, err
-	}
-	mapper := restmapper.NewDeferredDiscoveryRESTMapper(discoveryClient)
-	expander := restmapper.NewShortcutExpander(mapper, discoveryClient)
-	return expander, nil
 }

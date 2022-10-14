@@ -60,10 +60,13 @@ spec:
                           configuration. \n For supported flags, please see https://github.com/karmada-io/karmada/blob/master/cmd/aggregated-apiserver/app/options/options.go
                           for details."
                         type: object
+                      imageName:
+                        description: ImageName allows to specify a name for the image.
+                        type: string
                       imageRepository:
                         description: ImageRepository sets the container registry to
                           pull images from. if not set, the ImageRepository defined
-                          in KarmadaSpec will be used instead.
+                          in Spec will be used instead.
                         type: string
                       imageTag:
                         description: ImageTag allows to specify a tag for the image.
@@ -139,10 +142,13 @@ spec:
                         description: 'FeatureGates enabled by the user. More info:
                           https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/'
                         type: object
+                      imageName:
+                        description: ImageName allows to specify a name for the image.
+                        type: string
                       imageRepository:
                         description: ImageRepository sets the container registry to
                           pull images from. if not set, the ImageRepository defined
-                          in KarmadaSpec will be used instead.
+                          in Spec will be used instead.
                         type: string
                       imageTag:
                         description: ImageTag allows to specify a tag for the image.
@@ -215,10 +221,13 @@ spec:
                         items:
                           type: string
                         type: array
+                      imageName:
+                        description: ImageName allows to specify a name for the image.
+                        type: string
                       imageRepository:
                         description: ImageRepository sets the container registry to
                           pull images from. if not set, the ImageRepository defined
-                          in KarmadaSpec will be used instead.
+                          in Spec will be used instead.
                         type: string
                       imageTag:
                         description: ImageTag allows to specify a tag for the image.
@@ -295,10 +304,13 @@ spec:
                           configuration. \n For supported flags, please see https://github.com/karmada-io/karmada/blob/master/cmd/controller-manager/app/options/options.go
                           for details."
                         type: object
+                      imageName:
+                        description: ImageName allows to specify a name for the image.
+                        type: string
                       imageRepository:
                         description: ImageRepository sets the container registry to
                           pull images from. if not set, the ImageRepository defined
-                          in KarmadaSpec will be used instead.
+                          in Spec will be used instead.
                         type: string
                       imageTag:
                         description: ImageTag allows to specify a tag for the image.
@@ -404,10 +416,13 @@ spec:
                         description: 'FeatureGates enabled by the user. More info:
                           https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/'
                         type: object
+                      imageName:
+                        description: ImageName allows to specify a name for the image.
+                        type: string
                       imageRepository:
                         description: ImageRepository sets the container registry to
                           pull images from. if not set, the ImageRepository defined
-                          in KarmadaSpec will be used instead.
+                          in Spec will be used instead.
                         type: string
                       imageTag:
                         description: ImageTag allows to specify a tag for the image.
@@ -680,10 +695,13 @@ spec:
                         required:
                         - spec
                         type: object
+                      imageName:
+                        description: ImageName allows to specify a name for the image.
+                        type: string
                       imageRepository:
                         description: ImageRepository sets the container registry to
                           pull images from. if not set, the ImageRepository defined
-                          in KarmadaSpec will be used instead.
+                          in Spec will be used instead.
                         type: string
                       imageTag:
                         description: ImageTag allows to specify a tag for the image.
@@ -770,10 +788,13 @@ spec:
                           For supported flags, please see https://github.com/karmada-io/karmada/blob/master/cmd/descheduler/app/options/options.go
                           for details."
                         type: object
+                      imageName:
+                        description: ImageName allows to specify a name for the image.
+                        type: string
                       imageRepository:
                         description: ImageRepository sets the container registry to
                           pull images from. if not set, the ImageRepository defined
-                          in KarmadaSpec will be used instead.
+                          in Spec will be used instead.
                         type: string
                       imageTag:
                         description: ImageTag allows to specify a tag for the image.
@@ -836,10 +857,13 @@ spec:
                           For supported flags, please see https://github.com/karmada-io/karmada/blob/master/cmd/scheduler/app/options/options.go
                           for details."
                         type: object
+                      imageName:
+                        description: ImageName allows to specify a name for the image.
+                        type: string
                       imageRepository:
                         description: ImageRepository sets the container registry to
                           pull images from. if not set, the ImageRepository defined
-                          in KarmadaSpec will be used instead.
+                          in Spec will be used instead.
                         type: string
                       imageTag:
                         description: ImageTag allows to specify a tag for the image.
@@ -902,10 +926,13 @@ spec:
                           configuration. \n For supported flags, please see https://github.com/karmada-io/karmada/blob/master/cmd/scheduler-estimator/app/options/options.go
                           for details."
                         type: object
+                      imageName:
+                        description: ImageName allows to specify a name for the image.
+                        type: string
                       imageRepository:
                         description: ImageRepository sets the container registry to
                           pull images from. if not set, the ImageRepository defined
-                          in KarmadaSpec will be used instead.
+                          in Spec will be used instead.
                         type: string
                       imageTag:
                         description: ImageTag allows to specify a tag for the image.
@@ -972,10 +999,13 @@ spec:
                           please see https://github.com/karmada-io/karmada/blob/master/cmd/webhook/app/options/options.go
                           for details."
                         type: object
+                      imageName:
+                        description: ImageName allows to specify a name for the image.
+                        type: string
                       imageRepository:
                         description: ImageRepository sets the container registry to
                           pull images from. if not set, the ImageRepository defined
-                          in KarmadaSpec will be used instead.
+                          in Spec will be used instead.
                         type: string
                       imageTag:
                         description: ImageTag allows to specify a tag for the image.

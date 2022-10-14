@@ -51,6 +51,7 @@ rules:
   - install.firefly.io
   resources:
   - karmadas
+  - clusterpedias
   verbs:
   - '*'
 ---
@@ -152,6 +153,23 @@ webhooks:
       name: firefly-webhook
       namespace: firefly-system
       path: /mutate-policy-firefly-io-v1alpha1-karmada
+      port: 443
+  failurePolicy: Fail
+  sideEffects: None
+  admissionReviewVersions: ["v1"]
+  timeoutSeconds: 3
+- name: clusterpedias.v1alpha1.install.firefly.io
+  rules:
+  - operations: ["CREATE", "UPDATE"]
+    apiGroups: ["install.firefly.io"]
+    apiVersions: ["v1alpha1"]
+    resources: ["clusterpedias"]
+    scope: "Namespaced"
+  clientConfig:
+    service:
+      name: firefly-webhook
+      namespace: firefly-system
+      path: /mutate-policy-firefly-io-v1alpha1-clusterpedia
       port: 443
   failurePolicy: Fail
   sideEffects: None

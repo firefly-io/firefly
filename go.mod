@@ -3,6 +3,7 @@ module github.com/carlory/firefly
 go 1.18
 
 require (
+	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/karmada-io/karmada v1.3.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5

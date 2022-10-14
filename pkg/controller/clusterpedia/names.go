@@ -14,23 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package karmada
+package clusterpedia
 
 import (
 	"fmt"
 
-	restclient "k8s.io/client-go/rest"
-
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
-	utilresource "github.com/carlory/firefly/pkg/util/resource"
+	"github.com/carlory/firefly/pkg/constants"
+	"github.com/carlory/firefly/pkg/util"
 )
 
-const (
-	// the user-agent name is used when talking to karmada apiserver
-	userAgentName = "karmada-controller"
-)
+func GenerateDatabaseSecretName(clusterpedia *installv1alpha1.Clusterpedia) string {
+	componentName := util.ComponentName(constants.ClusterpediaComponentInternalStoragePostgres, clusterpedia.Name)
+	return fmt.Sprintf("%s-internalstorage-password", componentName)
+}
 
-func (ctrl *KarmadaController) GenerateClientConfig(karmada *installv1alpha1.Karmada) (*restclient.Config, error) {
-	secretName := fmt.Sprintf("%s-kubeconfig", karmada.Name)
-	return utilresource.GetClientConfigFromKubeConfigSecret(ctrl.client, karmada.Namespace, secretName, userAgentName)
+func GenerateDatabaseConfigMapName(clusterpedia *installv1alpha1.Clusterpedia) string {
+	return util.ComponentName(constants.ClusterpediaComponentInternalStorage, clusterpedia.Name)
 }

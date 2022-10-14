@@ -19,7 +19,7 @@ package constants
 import "time"
 
 const (
-	// APICallRetryInterval defines how long kubeadm should wait before retrying a failed API operation
+	// APICallRetryInterval defines how long firefly should wait before retrying a failed API operation
 	APICallRetryInterval = 500 * time.Millisecond
 
 	// KarmadaSystemNamespace defines the leader selection namespace for karmada components
@@ -44,4 +44,19 @@ const (
 	KarmadaComponentSchedulerEstimator = "karmada-scheduler-estimator"
 	// FireflyComponentKarmadaManager defines the name of the karmada-karmada-manager component
 	FireflyComponentKarmadaManager = "firefly-karmada-manager"
+
+	// ClusterpediaSystemNamespace defines the leader selection namespace for clusterpedia components
+	ClusterpediaSystemNamespace = "clusterpedia-system"
+	// ClusterpediaComponentAPIServer defines the name of the clusterpedia-apiserver component
+	ClusterpediaComponentAPIServer = "clusterpedia-apiserver"
+	// ClusterpediaComponentControllerManager defines the name of the clusterpedia-controller-manager component
+	ClusterpediaComponentControllerManager = "clusterpedia-controller-manager"
+	// ClusterpediaComponentClusterSynchroManager defines the name of the clusterpedia-clustersynchro-manager component
+	ClusterpediaComponentClusterSynchroManager = "clusterpedia-clustersynchro-manager"
+	// ClusterpediaComponentInternalStorage defines the name of the clusterpedia-internalstorage component
+	ClusterpediaComponentInternalStorage = "clusterpedia-internalstorage"
+	// ClusterpediaComponentInternalStoragePostgres defines the name of the clusterpedia-internalstorage-postgres component
+	ClusterpediaComponentInternalStoragePostgres = "clusterpedia-internalstorage-postgres"
+	// ClusterpediaComponentInternalStorageMySQL defines the name of the clusterpedia-internalstorage-mysql component
+	ClusterpediaComponentInternalStorageMySQL = "clusterpedia-internalstorage-mysql"
 )

@@ -36,6 +36,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	"github.com/carlory/firefly/cmd/firefly-webhook/app/options"
+	"github.com/carlory/firefly/pkg/webhook/clusterpedia"
 	"github.com/carlory/firefly/pkg/webhook/karmada"
 )
 
@@ -109,6 +110,7 @@ func Run(opts *options.Options) error {
 	klog.Info("registering webhooks to the webhook server")
 	hookServer := hookManager.GetWebhookServer()
 	hookServer.Register("/mutate-policy-firefly-io-v1alpha1-karmada", &webhook.Admission{Handler: &karmada.MutatingAdmission{}})
+	hookServer.Register("/mutate-policy-firefly-io-v1alpha1-clusterpedia", &webhook.Admission{Handler: &clusterpedia.MutatingAdmission{}})
 	hookServer.WebhookMux.Handle("/readyz/", http.StripPrefix("/readyz/", &healthz.Handler{}))
 
 	// blocks until the context is done.

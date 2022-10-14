@@ -22,6 +22,7 @@ import (
 
 	"k8s.io/controller-manager/controller"
 
+	"github.com/carlory/firefly/pkg/controller/clusterpedia"
 	"github.com/carlory/firefly/pkg/controller/karmada"
 )
 
@@ -32,7 +33,20 @@ func startKarmadaController(ctx context.Context, controllerContext ControllerCon
 		controllerContext.FireflyInformerFactory.Install().V1alpha1().Karmadas(),
 	)
 	if err != nil {
-		return nil, true, fmt.Errorf("failed to start the pvc karmada controller: %v", err)
+		return nil, true, fmt.Errorf("failed to start the karmada controller: %v", err)
+	}
+	go ctrl.Run(ctx, 1)
+	return nil, true, nil
+}
+
+func startClusterpediaController(ctx context.Context, controllerContext ControllerContext) (controller.Interface, bool, error) {
+	ctrl, err := clusterpedia.NewClusterpediaController(
+		controllerContext.ClientBuilder.ClientOrDie("firefly-clusterpedia-controller"),
+		controllerContext.ClientBuilder.FireflyClientOrDie("firefly-clusterpedia-controller"),
+		controllerContext.FireflyInformerFactory.Install().V1alpha1().Clusterpedias(),
+	)
+	if err != nil {
+		return nil, true, fmt.Errorf("failed to start the clusterepedia controller: %v", err)
 	}
 	go ctrl.Run(ctx, 1)
 	return nil, true, nil

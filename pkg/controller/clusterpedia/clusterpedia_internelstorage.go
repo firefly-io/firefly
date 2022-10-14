@@ -14,23 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package karmada
+package clusterpedia
 
 import (
 	"fmt"
 
-	restclient "k8s.io/client-go/rest"
-
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
-	utilresource "github.com/carlory/firefly/pkg/util/resource"
 )
 
-const (
-	// the user-agent name is used when talking to karmada apiserver
-	userAgentName = "karmada-controller"
-)
-
-func (ctrl *KarmadaController) GenerateClientConfig(karmada *installv1alpha1.Karmada) (*restclient.Config, error) {
-	secretName := fmt.Sprintf("%s-kubeconfig", karmada.Name)
-	return utilresource.GetClientConfigFromKubeConfigSecret(ctrl.client, karmada.Namespace, secretName, userAgentName)
+func (ctrl *ClusterpediaController) EnsureInternalStorage(clusterpedia *installv1alpha1.Clusterpedia) error {
+	storage := clusterpedia.Spec.Storage
+	switch {
+	case storage.Postgres != nil && storage.Postgres.Local != nil:
+		return ctrl.EnsurePostgres(clusterpedia)
+	case storage.MySQL != nil && storage.MySQL.Local != nil:
+		return ctrl.EnsureMySQL(clusterpedia)
+	}
+	return fmt.Errorf("unknown storage type")
 }

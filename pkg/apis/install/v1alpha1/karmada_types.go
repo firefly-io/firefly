@@ -570,7 +570,7 @@ type KarmadaSchedulerEstimatorComponent struct {
 // ImageMeta allows to customize the image used for components.
 type ImageMeta struct {
 	// ImageRepository sets the container registry to pull images from.
-	// if not set, the ImageRepository defined in KarmadaSpec will be used instead.
+	// if not set, the ImageRepository defined in Spec will be used instead.
 	// +optional
 	ImageRepository string `json:"imageRepository,omitempty"`
 
@@ -580,7 +580,9 @@ type ImageMeta struct {
 	// +optional
 	ImageTag string `json:"imageTag,omitempty"`
 
-	//TODO: evaluate if we need also a ImageName based on user feedbacks
+	// ImageName allows to specify a name for the image.
+	// +optional
+	ImageName string `json:"imageName,omitempty"`
 }
 
 // KarmadaStatus is the status for a Karmada resource

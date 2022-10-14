@@ -3,3 +3,7 @@ kind: Clusterpedia
 metadata:
   name: demo
   namespace: firefly-system
+spec:
+  controlplaneProvider:
+    karmada:
+      name: demo 

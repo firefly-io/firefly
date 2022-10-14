@@ -52,7 +52,7 @@ You can install karmada on any namespace. The given command will deploy karmada 
 the `firefly-system` namespace.
 
 ```console
-kubectl apply -f https://raw.githubusercontent.com/carlory/firefly/main/example/demo.yaml
+kubectl apply -f https://raw.githubusercontent.com/carlory/firefly/main/example/karmada.yaml
 ```
 
 Waiting for a few seconds, the output of `kubectl -n firefly-system get pods,services,secrets`:

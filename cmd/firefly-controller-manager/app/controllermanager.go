@@ -353,6 +353,7 @@ var ControllersDisabledByDefault = sets.NewString()
 func NewControllerInitializers() map[string]InitFunc {
 	controllers := map[string]InitFunc{}
 	controllers["karmada"] = startKarmadaController
+	controllers["clusterpedia"] = startClusterpediaController
 	return controllers
 }
 

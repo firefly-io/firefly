@@ -48,6 +48,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
 		&Karmada{},
 		&KarmadaList{},
+		&Clusterpedia{},
+		&ClusterpediaList{},
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil

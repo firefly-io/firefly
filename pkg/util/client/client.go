@@ -88,6 +88,21 @@ func CreateOrUpdateSecret(client kubernetes.Interface, secret *corev1.Secret) er
 	return err
 }
 
+// CreateOrUpdateConfigMap creates or updates a configmap
+func CreateOrUpdateConfigMap(client kubernetes.Interface, cm *corev1.ConfigMap) error {
+	got, err := client.CoreV1().ConfigMaps(cm.Namespace).Get(context.TODO(), cm.Name, metav1.GetOptions{})
+	if err != nil {
+		if !errors.IsNotFound(err) {
+			return err
+		}
+		_, err = client.CoreV1().ConfigMaps(cm.Namespace).Create(context.TODO(), cm, metav1.CreateOptions{})
+		return err
+	}
+	cm.ResourceVersion = got.ResourceVersion
+	_, err = client.CoreV1().ConfigMaps(cm.Namespace).Update(context.TODO(), cm, metav1.UpdateOptions{})
+	return err
+}
+
 // CreateOrUpdateAPIService creates or updates an apiservice
 func CreateOrUpdateAPIService(client aggregator.Interface, apisvc *apiregistrationv1.APIService) error {
 	got, err := client.ApiregistrationV1().APIServices().Get(context.TODO(), apisvc.Name, metav1.GetOptions{})

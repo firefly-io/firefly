@@ -3,22 +3,28 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.8.0
+    controller-gen.kubebuilder.io/version: v0.10.0
   creationTimestamp: null
-  name: clusterpedia.install.firefly.io
+  name: clusterimportpolicies.policy.clusterpedia.io
 spec:
-  group: install.firefly.io
+  group: policy.clusterpedia.io
   names:
-    kind: Clusterpedia
-    listKind: ClusterpediaList
-    plural: clusterpedia
-    singular: clusterpedia
-  scope: Namespaced
+    kind: ClusterImportPolicy
+    listKind: ClusterImportPolicyList
+    plural: clusterimportpolicies
+    singular: clusterimportpolicy
+  scope: Cluster
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .status.conditions[?(@.type == 'Validated')].reason
+      name: Validated
+      type: string
+    - jsonPath: .status.conditions[?(@.type == 'Reconciling')].reason
+      name: Reconciling
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Clusterpedia is a specification for a Clusterpedia resource
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -33,14 +39,65 @@ spec:
           metadata:
             type: object
           spec:
-            description: Specification of the desired behavior of the Clusterpedia.
+            properties:
+              creationCondition:
+                type: string
+              nameTemplate:
+                type: string
+              references:
+                items:
+                  properties:
+                    group:
+                      type: string
+                    key:
+                      type: string
+                    nameTemplate:
+                      type: string
+                    namespaceTemplate:
+                      type: string
+                    resource:
+                      type: string
+                    versions:
+                      items:
+                        type: string
+                      type: array
+                  required:
+                  - group
+                  - key
+                  - nameTemplate
+                  - resource
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - key
+                x-kubernetes-list-type: map
+              source:
+                properties:
+                  group:
+                    type: string
+                  resource:
+                    type: string
+                  selectorTemplate:
+                    type: string
+                  versions:
+                    items:
+                      type: string
+                    type: array
+                required:
+                - group
+                - resource
+                type: object
+              template:
+                type: string
+            required:
+            - creationCondition
+            - nameTemplate
+            - source
+            - template
             type: object
           status:
-            description: Most recently observed status of the Clusterpedia.
             properties:
               conditions:
-                description: Represents the latest available observations of a clusterpedia's
-                  current state.
                 items:
                   description: "Condition contains details for one aspect of the current
                     state of this API Resource. --- This struct is intended for direct
@@ -108,19 +165,9 @@ spec:
                   - type
                   type: object
                 type: array
-              observedGeneration:
-                description: observedGeneration is the most recent generation observed
-                  for this Clusterpedia. It corresponds to the Clusterpedia's generation,
-                  which is updated on mutation by the API Server.
-                format: int64
-                type: integer
             type: object
         type: object
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
+    subresources:
+      status: {}
