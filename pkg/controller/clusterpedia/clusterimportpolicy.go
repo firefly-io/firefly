@@ -52,12 +52,9 @@ func (ctrl *ClusterpediaController) EnsureClusterImportPolicy(clusterpedia *inst
 }
 
 func (ctrl *ClusterpediaController) applyPolicy(clusterpedia *installv1alpha1.Clusterpedia, tmpl string) error {
-	data, err := yaml.Marshal(tmpl)
-	if err != nil {
-		return err
-	}
 	obj := &unstructured.Unstructured{}
-	if err := obj.UnmarshalJSON(data); err != nil {
+	err := yaml.Unmarshal([]byte(tmpl), obj)
+	if err != nil {
 		return err
 	}
 
