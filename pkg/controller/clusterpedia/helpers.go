@@ -21,6 +21,7 @@ import (
 	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
@@ -58,6 +59,18 @@ func (ctrl *ClusterpediaController) GetControlplaneClient(clusterpedia *installv
 		return ctrl.client, nil
 	}
 	return ctrl.GetControlplaneClientFromProvider(clusterpedia)
+}
+
+func (ctrl *ClusterpediaController) GetControlplaneDynamicClientFromProvider(clusterpedia *installv1alpha1.Clusterpedia) (dynamic.Interface, error) {
+	kubeconfigSecretName, err := ctrl.KubeConfigSecretNameFromProvider(clusterpedia)
+	if err != nil {
+		return nil, err
+	}
+	clientConfig, err := utilresource.GetClientConfigFromKubeConfigSecret(ctrl.client, clusterpedia.Namespace, kubeconfigSecretName, userAgentName)
+	if err != nil {
+		return nil, err
+	}
+	return dynamic.NewForConfig(clientConfig)
 }
 
 // GetControlplaneClientFromProvider returns the client of the controlplane according to a provider.

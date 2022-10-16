@@ -301,6 +301,10 @@ func (ctrl *ClusterpediaController) syncClusterpedia(ctx context.Context, key st
 		return err
 	}
 
+	if err := ctrl.EnsureClusterImportPolicy(clusterpedia); err != nil {
+		return err
+	}
+
 	return nil
 }
 
