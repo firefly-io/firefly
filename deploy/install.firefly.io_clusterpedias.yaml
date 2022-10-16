@@ -261,6 +261,33 @@ spec:
                           TODO: Add other useful fields. apiVersion, kind, uid?'
                         type: string
                     type: object
+                  syncAllCustomResources:
+                    description: SyncAllCustomResources indicates whether to sync
+                      all the custom resources of member clusters to clusterpedia.
+                    type: boolean
+                  syncResources:
+                    description: SyncResources represents which resources will be
+                      synced to clusterpedia from member clusters. If empty, firefly
+                      won't auto-create clusterimportpolicy and nothing will be synced
+                      into clusterpedia by default.
+                    items:
+                      properties:
+                        group:
+                          type: string
+                        resources:
+                          items:
+                            type: string
+                          minItems: 1
+                          type: array
+                        versions:
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - group
+                      - resources
+                      type: object
+                    type: array
                 type: object
               featureGates:
                 additionalProperties:

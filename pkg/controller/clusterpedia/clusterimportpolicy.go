@@ -18,13 +18,15 @@ package clusterpedia
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
+	policyapi "github.com/clusterpedia-io/api/policy/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"sigs.k8s.io/yaml"
+	"k8s.io/client-go/dynamic"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 )
@@ -39,26 +41,31 @@ func (ctrl *ClusterpediaController) EnsureClusterImportPolicy(clusterpedia *inst
 	if !exists {
 		return nil
 	}
-	var tmpl string
+
 	provider := clusterpedia.Spec.ControlplaneProvider
+	if provider.SyncResources == nil {
+		return nil
+	}
+
+	var policy *policyapi.ClusterImportPolicy
 	switch {
 	case provider.Karmada != nil:
-		tmpl = KarmadaClusterImportPolicyTemplate
+		policy = ctrl.GenerateClusterImportPolicyForKamada(clusterpedia)
 	default:
 		return fmt.Errorf("unsupported controlplane provider")
 	}
 
-	return ctrl.applyPolicy(clusterpedia, tmpl)
-}
-
-func (ctrl *ClusterpediaController) applyPolicy(clusterpedia *installv1alpha1.Clusterpedia, tmpl string) error {
-	obj := &unstructured.Unstructured{}
-	err := yaml.Unmarshal([]byte(tmpl), obj)
+	client, err := ctrl.GetControlplaneDynamicClientFromProvider(clusterpedia)
 	if err != nil {
 		return err
 	}
+	return ctrl.applyPolicy(client, policy)
+}
 
-	client, err := ctrl.GetControlplaneDynamicClientFromProvider(clusterpedia)
+func (ctrl *ClusterpediaController) applyPolicy(client dynamic.Interface, policy *policyapi.ClusterImportPolicy) error {
+	data, _ := json.Marshal(policy)
+	obj := &unstructured.Unstructured{}
+	err := json.Unmarshal(data, obj)
 	if err != nil {
 		return err
 	}

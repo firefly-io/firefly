@@ -3,6 +3,8 @@ package v1alpha1
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	clusterapi "github.com/clusterpedia-io/api/cluster/v1alpha2"
 )
 
 // +genclient
@@ -69,6 +71,15 @@ type ClusterpediaSpec struct {
 
 // ControlplaneProvider represents where the clusterpedia crds will be deployed on.
 type ClusterpediaControlplaneProvider struct {
+	// SyncAllCustomResources indicates whether to sync all the custom resources of member clusters to clusterpedia.
+	// +optional
+	SyncAllCustomResources bool `json:"syncAllCustomResources,omitempty"`
+
+	// SyncResources represents which resources will be synced to clusterpedia from member clusters.
+	// If empty, firefly won't auto-create clusterimportpolicy and nothing will be synced into clusterpedia by default.
+	// +optional
+	SyncResources []clusterapi.ClusterGroupResources `json:"syncResources,omitempty"`
+
 	// Karmada represents the karmada control plane.
 	// +optional
 	Karmada *ClusterpediaControlplaneProviderKarmada `json:"karmada,omitempty"`

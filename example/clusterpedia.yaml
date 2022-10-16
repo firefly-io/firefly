@@ -7,3 +7,11 @@ spec:
   controlplaneProvider:
     karmada:
       name: demo 
+    syncResources:
+    - group: ""
+      resources:
+      - "pods"
+      - "services"
+    - group: "apps"
+      resources:
+      - "*"
