@@ -311,17 +311,23 @@ func (ctrl *EstimatorController) syncEstimator(ctx context.Context, key string) 
 						"cluster", cluster.Name)
 					return nil
 				}
+				klog.ErrorS(err, "failed to get karmada", "karmada", ctrl.karmadaName)
 				return err
 			}
 			if err := ctrl.RemoveEstimator(ctx, karmada, cluster); err != nil {
 				// if fail to delete the external dependency here, return with error
 				// so that it can be retried
+				klog.ErrorS(err, "failed to remove estimator", "karmada", ctrl.karmadaName, "cluster", cluster.Name)
 				return err
 			}
 
 			// remove our finalizer from the list and update it.
 			controllerutil.RemoveFinalizer(cluster, EstimatorControllerFinalizerName)
 			// Stop reconciliation as the item is being deleted
+			_, err = ctrl.karmadaClient.ClusterV1alpha1().Clusters().Update(ctx, cluster, metav1.UpdateOptions{})
+			if err != nil {
+				return err
+			}
 			return nil
 		}
 	}
