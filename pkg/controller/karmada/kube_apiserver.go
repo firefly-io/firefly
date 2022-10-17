@@ -25,11 +25,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
+	"github.com/carlory/firefly/pkg/scheme"
 	"github.com/carlory/firefly/pkg/util"
 	clientutil "github.com/carlory/firefly/pkg/util/client"
 	maputil "github.com/carlory/firefly/pkg/util/map"

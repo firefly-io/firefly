@@ -34,7 +34,6 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/scheme"
 	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
@@ -47,6 +46,7 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	installinformers "github.com/carlory/firefly/pkg/generated/informers/externalversions/install/v1alpha1"
 	installlisters "github.com/carlory/firefly/pkg/generated/listers/install/v1alpha1"
+	"github.com/carlory/firefly/pkg/scheme"
 )
 
 const (

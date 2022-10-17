@@ -1,5 +1,5 @@
 /*
-Copyright 2022 The Firefly Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,24 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package install installs the install API group, making it available as
-// an option to all of the API encoding/decoding machinery.
-package install
+package scheme
 
 import (
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-
-	"github.com/carlory/firefly/pkg/apis/install/v1alpha1"
-	"github.com/carlory/firefly/pkg/scheme"
+	"k8s.io/client-go/kubernetes/scheme"
 )
 
-func init() {
-	Install(scheme.Scheme)
-}
+var Scheme = runtime.NewScheme()
 
-// Install registers the API group and adds types to a scheme
-func Install(scheme *runtime.Scheme) {
-	utilruntime.Must(v1alpha1.AddToScheme(scheme))
-	utilruntime.Must(scheme.SetVersionPriority(v1alpha1.SchemeGroupVersion))
+func init() {
+	utilruntime.Must(scheme.AddToScheme(Scheme))
 }

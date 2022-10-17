@@ -23,7 +23,6 @@ import (
 
 	"github.com/spf13/cobra"
 	apiserver "k8s.io/apiserver/pkg/server"
-	"k8s.io/client-go/kubernetes/scheme"
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/component-base/cli/globalflag"
 	"k8s.io/component-base/logs"
@@ -36,6 +35,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	"github.com/carlory/firefly/cmd/firefly-webhook/app/options"
+	"github.com/carlory/firefly/pkg/scheme"
 	"github.com/carlory/firefly/pkg/webhook/clusterpedia"
 	"github.com/carlory/firefly/pkg/webhook/karmada"
 )
