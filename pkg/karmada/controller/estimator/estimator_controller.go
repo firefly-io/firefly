@@ -46,7 +46,7 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	installinformers "github.com/carlory/firefly/pkg/generated/informers/externalversions/install/v1alpha1"
 	installlisters "github.com/carlory/firefly/pkg/generated/listers/install/v1alpha1"
-	"github.com/carlory/firefly/pkg/scheme"
+	"github.com/carlory/firefly/pkg/karmada/scheme"
 )
 
 const (

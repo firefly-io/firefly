@@ -16,3 +16,9 @@ bash "${CODEGEN_PKG}"/generate-groups.sh "all" \
   "install:v1alpha1"\
   --output-base "$(dirname "${BASH_SOURCE[0]}")/../../../../" \
   --go-header-file "${SCRIPT_ROOT}"/hack/boilerplate/boilerplate.go.txt
+
+bash "${CODEGEN_PKG}"/generate-groups.sh "all" \
+ github.com/carlory/firefly/pkg/karmada/generated github.com/carlory/firefly/pkg/karmada/apis \
+  "toolkit:v1alpha1"\
+  --output-base "$(dirname "${BASH_SOURCE[0]}")/../../../../" \
+  --go-header-file "${SCRIPT_ROOT}"/hack/boilerplate/boilerplate.go.txt

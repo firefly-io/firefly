@@ -30,6 +30,7 @@ Before you do it, please make sure that the [cert-manager](https://cert-manager.
 
 ```console
 kubectl apply -f https://raw.githubusercontent.com/carlory/firefly/main/deploy/install.firefly.io_karmadas.yaml
+kubectl apply -f https://raw.githubusercontent.com/carlory/firefly/main/deploy/install.firefly.io_clusterpedias.yaml
 ```
 
 **Step 2:** Create namespace

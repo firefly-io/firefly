@@ -26,6 +26,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/cli-runtime/pkg/resource"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
@@ -33,6 +34,7 @@ import (
 	"github.com/carlory/firefly/pkg/scheme"
 	"github.com/carlory/firefly/pkg/util"
 	maputil "github.com/carlory/firefly/pkg/util/map"
+	utilresource "github.com/carlory/firefly/pkg/util/resource"
 )
 
 func (ctrl *KarmadaController) EnsureFireflyKarmadaManager(karmada *installv1alpha1.Karmada) error {
@@ -45,7 +47,10 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManager(karmada *installv1alp
 	if err := ctrl.EnsureFireflyKarmadaManagerRoleBinding(karmada); err != nil {
 		return err
 	}
-	return ctrl.EnsureFireflyKarmadaManagerDeployment(karmada)
+	if err := ctrl.EnsureFireflyKarmadaManagerDeployment(karmada); err != nil {
+		return err
+	}
+	return ctrl.EnsureFireflyKarmadaManagerCRDs(karmada)
 }
 
 func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerServiceAccount(karmada *installv1alpha1.Karmada) error {
@@ -135,6 +140,7 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerDeployment(karmada *in
 		"authorization-kubeconfig":  "/etc/karmada/kubeconfig",
 		"estimator-namespace":       karmada.Namespace,
 		"karmada-name":              karmada.Name,
+		"v":                         "4",
 	}
 	if fkm.Controllers != nil {
 		defaultArgs["controllers"] = strings.Join(fkm.Controllers, ",")
@@ -197,4 +203,27 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerDeployment(karmada *in
 		return err
 	}
 	return nil
+}
+
+func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerCRDs(karmada *installv1alpha1.Karmada) error {
+	clientConfig, err := ctrl.GenerateClientConfig(karmada)
+	if err != nil {
+		return err
+	}
+	result := utilresource.NewBuilder(clientConfig).
+		Unstructured().
+		FilenameParam(false, &resource.FilenameOptions{Recursive: false, Filenames: []string{"./pkg/karmada/crds"}}).
+		Flatten().Do()
+	return result.Visit(func(info *resource.Info, err error) error {
+		if err != nil {
+			return err
+		}
+		_, err1 := resource.NewHelper(info.Client, info.Mapping).Create(info.Namespace, true, info.Object)
+		if err1 != nil {
+			if !errors.IsAlreadyExists(err1) {
+				return err1
+			}
+		}
+		return nil
+	})
 }

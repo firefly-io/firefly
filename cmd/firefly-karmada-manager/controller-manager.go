@@ -29,8 +29,6 @@ import (
 	_ "k8s.io/component-base/metrics/prometheus/version"  // for version metric registration
 
 	"github.com/carlory/firefly/cmd/firefly-karmada-manager/app"
-	// install
-	_ "github.com/carlory/firefly/pkg/apis/install/install"
 )
 
 func main() {

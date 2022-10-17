@@ -21,6 +21,8 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/controller-manager/pkg/clientbuilder"
 	"k8s.io/klog/v2"
+
+	fireflyclient "github.com/carlory/firefly/pkg/karmada/generated/clientset/versioned"
 )
 
 // KarmadaControllerClientBuilder allows you to get clients and configs for controllers of the firefly-karmada-manager
@@ -28,6 +30,8 @@ type KarmadaControllerClientBuilder interface {
 	clientbuilder.ControllerClientBuilder
 	KarmadaClient(name string) (karmadaversioned.Interface, error)
 	KarmadaClientOrDie(name string) karmadaversioned.Interface
+	KarmadaFireflyClient(name string) (fireflyclient.Interface, error)
+	KarmadaFireflyClientOrDie(name string) fireflyclient.Interface
 }
 
 // make sure that SimpleKarmadaControllerClientBuilder implements KarmadaControllerClientBuilder
@@ -60,6 +64,25 @@ func (b SimpleKarmadaControllerClientBuilder) KarmadaClient(name string) (karmad
 // If it gets an error getting the client, it will log the error and kill the process it's running in.
 func (b SimpleKarmadaControllerClientBuilder) KarmadaClientOrDie(name string) karmadaversioned.Interface {
 	client, err := b.KarmadaClient(name)
+	if err != nil {
+		klog.Fatal(err)
+	}
+	return client
+}
+
+// KarmadaFireflyClient returns a fireflyclient.Interface built from the ClientBuilder
+func (b SimpleKarmadaControllerClientBuilder) KarmadaFireflyClient(name string) (fireflyclient.Interface, error) {
+	clientConfig, err := b.Config(name)
+	if err != nil {
+		return nil, err
+	}
+	return fireflyclient.NewForConfig(clientConfig)
+}
+
+// KarmadaFireflyClientOrDie returns a fireflyclient.interface built from the ClientBuilder with no error.
+// If it gets an error getting the client, it will log the error and kill the process it's running in.
+func (b SimpleKarmadaControllerClientBuilder) KarmadaFireflyClientOrDie(name string) fireflyclient.Interface {
+	client, err := b.KarmadaFireflyClient(name)
 	if err != nil {
 		klog.Fatal(err)
 	}

@@ -20,9 +20,11 @@ import (
 	"context"
 	"fmt"
 
+	"k8s.io/client-go/dynamic"
 	"k8s.io/controller-manager/controller"
 
 	"github.com/carlory/firefly/pkg/karmada/controller/estimator"
+	"github.com/carlory/firefly/pkg/karmada/controller/foo"
 	"github.com/carlory/firefly/pkg/karmada/controller/node"
 )
 
@@ -51,6 +53,27 @@ func startNodeController(ctx context.Context, controllerContext ControllerContex
 	)
 	if err != nil {
 		return nil, true, fmt.Errorf("failed to start the node controller: %v", err)
+	}
+	go ctrl.Run(ctx, 1)
+	return nil, true, nil
+}
+
+func startFooController(ctx context.Context, controllerContext ControllerContext) (controller.Interface, bool, error) {
+	clientConfig := controllerContext.KarmadaClientBuilder.ConfigOrDie("firefly-foo-controller")
+	dynamicClient := dynamic.NewForConfigOrDie(clientConfig)
+
+	ctrl, err := foo.NewFooController(
+		controllerContext.RESTMapper,
+		dynamicClient,
+		controllerContext.KarmadaClientBuilder.ClientOrDie("firefly-foo-controller"),
+		controllerContext.KarmadaClientBuilder.KarmadaClientOrDie("firefly-foo-controller"),
+		controllerContext.KarmadaClientBuilder.KarmadaFireflyClientOrDie("firefly-foo-controller"),
+		controllerContext.KarmadaFireflyInformerFactory.Toolkit().V1alpha1().Foos(),
+		controllerContext.KarmadaInformerFactory.Cluster().V1alpha1().Clusters(),
+		controllerContext.KarmadaInformerFactory.Work().V1alpha1().Works(),
+	)
+	if err != nil {
+		return nil, true, fmt.Errorf("failed to start the foo controller: %v", err)
 	}
 	go ctrl.Run(ctx, 1)
 	return nil, true, nil

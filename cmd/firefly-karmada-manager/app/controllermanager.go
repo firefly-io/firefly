@@ -65,6 +65,7 @@ import (
 	fireflyversioned "github.com/carlory/firefly/pkg/generated/clientset/versioned"
 	fireflyinformers "github.com/carlory/firefly/pkg/generated/informers/externalversions"
 	fireflyctrlmgrconfig "github.com/carlory/firefly/pkg/karmada/controller/apis/config"
+	karmadafireflyinformers "github.com/carlory/firefly/pkg/karmada/generated/informers/externalversions"
 )
 
 func init() {
@@ -206,6 +207,7 @@ func Run(c *config.CompletedConfig, stopCh <-chan struct{}) error {
 		controllerContext.KarmadaKubeInformerFactory.Start(stopCh)
 		controllerContext.KarmadaInformerFactory.Start(stopCh)
 		controllerContext.FireflyKubeInformerFactory.Start(stopCh)
+		controllerContext.KarmadaFireflyInformerFactory.Start(stopCh)
 		controllerContext.FireflyInformerFactory.Start(stopCh)
 		controllerContext.ObjectOrMetadataInformerFactory.Start(stopCh)
 		close(controllerContext.InformersStarted)
@@ -293,11 +295,14 @@ type ControllerContext struct {
 	// KarmadaClientBuilder will provide a client for this controller to use
 	KarmadaClientBuilder clientbuilder.KarmadaControllerClientBuilder
 
-	// KarmadaClientBuilder will provide a client for this controller to use
+	// FireflyClientBuilder will provide a client for this controller to use
 	FireflyClientBuilder clientbuilder.FireflyControllerClientBuilder
 
 	// KarmadaKubeInformerFactory gives access to kubernetes informers for the controller.
 	KarmadaKubeInformerFactory informers.SharedInformerFactory
+
+	// KarmadaFireflyInformerFactory gives access to karmada's firelfy informers for the controller.
+	KarmadaFireflyInformerFactory karmadafireflyinformers.SharedInformerFactory
 
 	// KarmadaInformerFactory gives access to firefly informers for the controller.
 	KarmadaInformerFactory karmadainformers.SharedInformerFactory
@@ -372,6 +377,7 @@ func NewControllerInitializers() map[string]InitFunc {
 	controllers := map[string]InitFunc{}
 	controllers["estimator"] = startEstimatorController
 	controllers["node"] = startNodeController
+	controllers["foo"] = startFooController
 	return controllers
 }
 
@@ -408,8 +414,11 @@ func GetAvailableResources(clientBuilder clientbuilder.KarmadaControllerClientBu
 // controllers such as the cloud provider and clientBuilder. rootClientBuilder is only used for
 // the shared-informers client and token controller.
 func CreateControllerContext(s *config.CompletedConfig, karmadaClientBuilder clientbuilder.KarmadaControllerClientBuilder, fireflyKubeClientBuilder clientbuilder.FireflyControllerClientBuilder, stop <-chan struct{}) (ControllerContext, error) {
-	karmadaKubeClient := karmadaClientBuilder.ClientOrDie("firefly-kube-shared-informers")
+	karmadaKubeClient := karmadaClientBuilder.ClientOrDie("karmada-kube-shared-informers")
 	karmadaKubeSharedInformers := informers.NewSharedInformerFactory(karmadaKubeClient, ResyncPeriod(s)())
+
+	karmadaFireflyClient := karmadaClientBuilder.KarmadaFireflyClientOrDie("karmada-firefly-shared-informers")
+	karmadaFireflySharedInformers := karmadafireflyinformers.NewSharedInformerFactory(karmadaFireflyClient, ResyncPeriod(s)())
 
 	clientConfig := karmadaClientBuilder.ConfigOrDie("karmada-shared-informers")
 	karmadaClient := karmadaversioned.NewForConfigOrDie(clientConfig)
@@ -454,6 +463,7 @@ func CreateControllerContext(s *config.CompletedConfig, karmadaClientBuilder cli
 		KarmadaClientBuilder:            karmadaClientBuilder,
 		FireflyClientBuilder:            fireflyKubeClientBuilder,
 		KarmadaKubeInformerFactory:      karmadaKubeSharedInformers,
+		KarmadaFireflyInformerFactory:   karmadaFireflySharedInformers,
 		KarmadaInformerFactory:          karmadaSharedInformers,
 		FireflyKubeInformerFactory:      fireflyKubeSharedInformers,
 		FireflyInformerFactory:          fireflySharedInformers,
