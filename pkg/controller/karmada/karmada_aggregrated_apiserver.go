@@ -44,7 +44,7 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServer(karmada *install
 	if err := ctrl.EnsureKarmadaAggregatedAPIServerDeployment(karmada); err != nil {
 		return err
 	}
-	podLabel := fmt.Sprintf("app=%s", util.ComponentName(constants.KarmadaComponentAggregratedAPIServer, karmada.Name))
+	podLabel := fmt.Sprintf("app=%s", constants.KarmadaComponentAggregratedAPIServer)
 	err := util.NewKubeWaiter(ctrl.client, 10*time.Second).WaitForPodsWithLabel(karmada.Namespace, podLabel)
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServer(karmada *install
 }
 
 func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerService(karmada *installv1alpha1.Karmada) error {
-	componentName := util.ComponentName(constants.KarmadaComponentAggregratedAPIServer, karmada.Name)
+	componentName := constants.KarmadaComponentAggregratedAPIServer
 	svc := &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -83,7 +83,7 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerService(karmada *
 }
 
 func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerDeployment(karmada *installv1alpha1.Karmada) error {
-	componentName := util.ComponentName(constants.KarmadaComponentAggregratedAPIServer, karmada.Name)
+	componentName := constants.KarmadaComponentAggregratedAPIServer
 	server := karmada.Spec.APIServer.KarmadaAggregratedAPIServer
 	repository := karmada.Spec.ImageRepository
 	tag := karmada.Spec.KarmadaVersion
@@ -101,7 +101,7 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerDeployment(karmad
 		"etcd-cafile":               "/etc/kubernetes/pki/etcd-ca.crt",
 		"etcd-certfile":             "/etc/kubernetes/pki/etcd-client.crt",
 		"etcd-keyfile":              "/etc/kubernetes/pki/etcd-client.key",
-		"etcd-servers":              fmt.Sprintf("https://%s.%s.svc:2379", util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name), karmada.Namespace),
+		"etcd-servers":              fmt.Sprintf("https://%s.%s.svc:2379", constants.KarmadaComponentEtcd, karmada.Namespace),
 		"audit-log-path":            "-",
 		"feature-gates":             "APIPriorityAndFairness=false",
 		"audit-log-maxage":          "0",
@@ -199,7 +199,7 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerDeployment(karmad
 							Name: "k8s-certs",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: fmt.Sprintf("%s-cert", util.ComponentName("karmada", karmada.Name)),
+									SecretName: "karmada-cert",
 								},
 							},
 						},
@@ -207,7 +207,7 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerDeployment(karmad
 							Name: "kubeconfig",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: fmt.Sprintf("%s-kubeconfig", karmada.Name),
+									SecretName: "karmada-kubeconfig",
 								},
 							},
 						},
@@ -246,7 +246,7 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerAPIService(karmad
 		},
 		Spec: corev1.ServiceSpec{
 			Type:         corev1.ServiceTypeExternalName,
-			ExternalName: fmt.Sprintf("%s.%s.svc", util.ComponentName(constants.KarmadaComponentAggregratedAPIServer, karmada.Name), karmada.Namespace),
+			ExternalName: fmt.Sprintf("%s.%s.svc", constants.KarmadaComponentAggregratedAPIServer, karmada.Namespace),
 		},
 	}
 	if err = clientutil.CreateOrUpdateService(kubeClient, svc); err != nil {

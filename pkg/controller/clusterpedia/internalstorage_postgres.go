@@ -29,7 +29,6 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/scheme"
-	"github.com/carlory/firefly/pkg/util"
 	clientutil "github.com/carlory/firefly/pkg/util/client"
 )
 
@@ -48,7 +47,7 @@ func (ctrl *ClusterpediaController) EnsurePostgres(clusterpedia *installv1alpha1
 
 // EnsurePostgresService ensures the clusterpedia-internalstorage-postgres service exists.
 func (ctrl *ClusterpediaController) EnsurePostgresService(clusterpedia *installv1alpha1.Clusterpedia) error {
-	componentName := util.ComponentName(constants.ClusterpediaComponentInternalStoragePostgres, clusterpedia.Name)
+	componentName := constants.ClusterpediaComponentInternalStoragePostgres
 	svc := &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -102,7 +101,7 @@ func (ctrl *ClusterpediaController) EnsurePostgresSecret(clusterpedia *installv1
 
 // EnsurePostgresConfigMap ensures the clusterpedia-internalstorage-postgres configmap exists.
 func (ctrl *ClusterpediaController) EnsurePostgresConfigMap(clusterpedia *installv1alpha1.Clusterpedia) error {
-	svcName := util.ComponentName(constants.ClusterpediaComponentInternalStoragePostgres, clusterpedia.Name)
+	svcName := constants.ClusterpediaComponentInternalStoragePostgres
 	cm := &corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -127,7 +126,7 @@ func (ctrl *ClusterpediaController) EnsurePostgresConfigMap(clusterpedia *instal
 
 // EnsurePostgresDeployment ensures the clusterpedia-internalstorage-postgres deployment exists.
 func (ctrl *ClusterpediaController) EnsurePostgresDeployment(clusterpedia *installv1alpha1.Clusterpedia) error {
-	componentName := util.ComponentName(constants.ClusterpediaComponentInternalStoragePostgres, clusterpedia.Name)
+	componentName := constants.ClusterpediaComponentInternalStoragePostgres
 	image := clusterpedia.Spec.Storage.Postgres.Local
 
 	deployment := &appsv1.Deployment{

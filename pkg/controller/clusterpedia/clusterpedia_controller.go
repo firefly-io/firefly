@@ -330,7 +330,15 @@ func (ctrl *ClusterpediaController) EnsureNamespace(clusterpedia *installv1alpha
 }
 
 func (ctrl *ClusterpediaController) deleteUnableGCResources(clusterpedia *installv1alpha1.Clusterpedia) error {
-	err := ctrl.RemoveClusterpediaCRDs(clusterpedia)
+	_, err := ctrl.IsControllPlaneProviderExists(clusterpedia)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	err = ctrl.RemoveClusterpediaCRDs(clusterpedia)
 	if err != nil {
 		return err
 	}

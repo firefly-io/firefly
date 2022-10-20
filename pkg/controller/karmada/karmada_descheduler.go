@@ -18,7 +18,6 @@ package karmada
 
 import (
 	"context"
-	"fmt"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -51,13 +50,13 @@ func (ctrl *KarmadaController) EnsureKarmadaDescheduler(karmada *installv1alpha1
 }
 
 func (ctrl *KarmadaController) RemoveKarmadaDescheduler(karmada *installv1alpha1.Karmada) error {
-	componentName := util.ComponentName(constants.KarmadaComponentDescheduler, karmada.Name)
+	componentName := constants.KarmadaComponentDescheduler
 	err := ctrl.client.AppsV1().Deployments(karmada.Namespace).Delete(context.TODO(), componentName, metav1.DeleteOptions{})
 	return client.IgnoreNotFound(err)
 }
 
 func (ctrl *KarmadaController) EnsureKarmadaDeschedulerDeployment(karmada *installv1alpha1.Karmada) error {
-	componentName := util.ComponentName(constants.KarmadaComponentDescheduler, karmada.Name)
+	componentName := constants.KarmadaComponentDescheduler
 	scheduler := karmada.Spec.Scheduler.KarmadaDescheduler
 	repository := karmada.Spec.ImageRepository
 	tag := karmada.Spec.KarmadaVersion
@@ -117,7 +116,7 @@ func (ctrl *KarmadaController) EnsureKarmadaDeschedulerDeployment(karmada *insta
 							Name: "kubeconfig",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: fmt.Sprintf("%s-kubeconfig", karmada.Name),
+									SecretName: "karmada-kubeconfig",
 								},
 							},
 						},

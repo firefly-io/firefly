@@ -64,7 +64,7 @@ func (ctrl *ClusterpediaController) EnsureAPIServer(clusterpedia *installv1alpha
 
 // EnsureAPIServerService ensures the clusterpedia-apiserver service exists.
 func (ctrl *ClusterpediaController) EnsureAPIServerService(clusterpedia *installv1alpha1.Clusterpedia) error {
-	componentName := util.ComponentName(constants.ClusterpediaComponentAPIServer, clusterpedia.Name)
+	componentName := constants.ClusterpediaComponentAPIServer
 	svc := &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -96,7 +96,7 @@ func (ctrl *ClusterpediaController) EnsureAPIServerService(clusterpedia *install
 
 // EnsureAPIServerDeployment ensures the clusterpedia-apiserver deployment exists.
 func (ctrl *ClusterpediaController) EnsureAPIServerDeployment(clusterpedia *installv1alpha1.Clusterpedia) error {
-	componentName := util.ComponentName(constants.ClusterpediaComponentAPIServer, clusterpedia.Name)
+	componentName := constants.ClusterpediaComponentAPIServer
 	server := clusterpedia.Spec.APIServer
 	repository := clusterpedia.Spec.ImageRepository
 	tag := clusterpedia.Spec.Version
@@ -280,7 +280,7 @@ func (ctrl *ClusterpediaController) EnsureClusterpediaAPIService(clusterpedia *i
 		},
 		Spec: corev1.ServiceSpec{
 			Type:         corev1.ServiceTypeExternalName,
-			ExternalName: fmt.Sprintf("%s.%s.svc", util.ComponentName(constants.ClusterpediaComponentAPIServer, clusterpedia.Name), clusterpedia.Namespace),
+			ExternalName: fmt.Sprintf("%s.%s.svc", constants.ClusterpediaComponentAPIServer, clusterpedia.Namespace),
 		},
 	}
 	if err = clientutil.CreateOrUpdateService(kubeClient, svc); err != nil {

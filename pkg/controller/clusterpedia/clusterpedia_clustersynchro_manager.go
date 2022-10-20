@@ -46,7 +46,7 @@ func (ctrl *ClusterpediaController) EnsureClusterSynchroManager(clusterpedia *in
 }
 
 func (ctrl *ClusterpediaController) EnsureClusterSynchroManagerDeployment(clusterpedia *installv1alpha1.Clusterpedia) error {
-	componentName := util.ComponentName(constants.ClusterpediaComponentClusterSynchroManager, clusterpedia.Name)
+	componentName := constants.ClusterpediaComponentClusterSynchroManager
 	manager := clusterpedia.Spec.ClusterpediaSynchroManager
 	repository := clusterpedia.Spec.ImageRepository
 	tag := clusterpedia.Spec.Version

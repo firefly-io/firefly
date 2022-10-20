@@ -93,13 +93,7 @@ func (ctrl *ClusterpediaController) KubeConfigSecretNameFromProvider(clusterpedi
 		return "", fmt.Errorf("no provider found")
 	}
 	if provider.Karmada != nil {
-		return ctrl.KubeConfigSecretNameFromKarmada(provider.Karmada)
+		return "karmada-kubeconfig", nil
 	}
 	return "", nil
-}
-
-func (ctrl *ClusterpediaController) KubeConfigSecretNameFromKarmada(provider *installv1alpha1.ClusterpediaControlplaneProviderKarmada) (string, error) {
-	karmadaName := provider.Name
-	secretName := fmt.Sprintf("%s-kubeconfig", karmadaName)
-	return secretName, nil
 }

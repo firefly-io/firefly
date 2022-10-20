@@ -1,7 +1,7 @@
 apiVersion: install.firefly.io/v1alpha1
 kind: Karmada
 metadata:
-  name: demo
+  name: karmada
   namespace: firefly-system
 spec:
   networking:

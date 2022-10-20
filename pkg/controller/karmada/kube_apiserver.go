@@ -61,7 +61,7 @@ func (ctrl *KarmadaController) EnsureKubeAPIServer(karmada *installv1alpha1.Karm
 
 // EnsureKubeAPIServerService ensures the kube-apiserver service exists.
 func (ctrl *KarmadaController) EnsureKubeAPIServerService(karmada *installv1alpha1.Karmada) error {
-	componentName := util.ComponentName(constants.KarmadaComponentKubeAPIServer, karmada.Name)
+	componentName := constants.KarmadaComponentKubeAPIServer
 	svc := &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -93,7 +93,7 @@ func (ctrl *KarmadaController) EnsureKubeAPIServerService(karmada *installv1alph
 
 // EnsureKubeAPIServerDeployment ensures the kube-apiserver deployment exists.
 func (ctrl *KarmadaController) EnsureKubeAPIServerDeployment(karmada *installv1alpha1.Karmada) error {
-	componentName := util.ComponentName(constants.KarmadaComponentKubeAPIServer, karmada.Name)
+	componentName := constants.KarmadaComponentKubeAPIServer
 	server := karmada.Spec.APIServer.KubeAPIServer
 	repository := karmada.Spec.ImageRepository
 	tag := karmada.Spec.KubernetesVersion
@@ -113,7 +113,7 @@ func (ctrl *KarmadaController) EnsureKubeAPIServerDeployment(karmada *installv1a
 		"etcd-cafile":                        "/etc/kubernetes/pki/etcd-ca.crt",
 		"etcd-certfile":                      "/etc/kubernetes/pki/etcd-client.crt",
 		"etcd-keyfile":                       "/etc/kubernetes/pki/etcd-client.key",
-		"etcd-servers":                       fmt.Sprintf("https://%s.%s.svc:2379", util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name), karmada.Namespace),
+		"etcd-servers":                       fmt.Sprintf("https://%s.%s.svc:2379", constants.KarmadaComponentEtcd, karmada.Namespace),
 		"bind-address":                       "0.0.0.0",
 		"insecure-port":                      "0",
 		"kubelet-client-certificate":         "/etc/kubernetes/pki/karmada.crt",
@@ -220,7 +220,7 @@ func (ctrl *KarmadaController) EnsureKubeAPIServerDeployment(karmada *installv1a
 							Name: "k8s-certs",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: fmt.Sprintf("%s-cert", util.ComponentName("karmada", karmada.Name)),
+									SecretName: "karmada-cert",
 								},
 							},
 						},

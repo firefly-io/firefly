@@ -43,7 +43,7 @@ func (ctrl *KarmadaController) EnsureEtcd(karmada *installv1alpha1.Karmada) erro
 }
 
 func (ctrl *KarmadaController) EnsureEtcdService(karmada *installv1alpha1.Karmada) error {
-	etcdName := util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name)
+	etcdName := constants.KarmadaComponentEtcd
 	svc := &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -84,7 +84,7 @@ func (ctrl *KarmadaController) EnsureEtcdService(karmada *installv1alpha1.Karmad
 }
 
 func (ctrl *KarmadaController) EnsureEtcdStatefulSet(karmada *installv1alpha1.Karmada) error {
-	etcdName := util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name)
+	etcdName := constants.KarmadaComponentEtcd
 	etcd := karmada.Spec.Etcd.Local
 	repository := karmada.Spec.ImageRepository
 	tag := "3.4.13-0"
@@ -155,7 +155,7 @@ func (ctrl *KarmadaController) EnsureEtcdStatefulSet(karmada *installv1alpha1.Ka
 							Name: "etcd-certs",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: fmt.Sprintf("%s-cert", util.ComponentName(constants.KarmadaComponentEtcd, karmada.Name)),
+									SecretName: fmt.Sprintf("%s-cert", constants.KarmadaComponentEtcd),
 								},
 							},
 						},

@@ -38,7 +38,7 @@ func (ctrl *KarmadaController) EnsureKarmadaControllerManager(karmada *installv1
 }
 
 func (ctrl *KarmadaController) EnsureKarmadaControllerManagerDeployment(karmada *installv1alpha1.Karmada) error {
-	componentName := util.ComponentName(constants.KarmadaComponentControllerManager, karmada.Name)
+	componentName := constants.KarmadaComponentControllerManager
 	kcm := karmada.Spec.ControllerManager.KarmadaControllerManager
 	repository := karmada.Spec.ImageRepository
 	tag := karmada.Spec.KarmadaVersion
@@ -111,7 +111,7 @@ func (ctrl *KarmadaController) EnsureKarmadaControllerManagerDeployment(karmada 
 							Name: "kubeconfig",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: fmt.Sprintf("%s-kubeconfig", karmada.Name),
+									SecretName: "karmada-kubeconfig",
 								},
 							},
 						},

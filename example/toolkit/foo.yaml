@@ -1,0 +1,111 @@
+apiVersion: toolkit.firefly.io/v1alpha1
+kind: Foo
+metadata:
+  name: demo
+  namespace: default
+spec:
+  manifests:
+  - apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      annotations:
+        controller-gen.kubebuilder.io/version: v0.8.0
+      creationTimestamp: null
+      name: bars.test.firefly.io
+    spec:
+      group: test.firefly.io
+      names:
+        kind: Bar
+        listKind: BarList
+        plural: bars
+        singular: bar
+      scope: Namespaced
+      versions:
+      - name: v1alpha1
+        schema:
+          openAPIV3Schema:
+            description: Bar is a specification for a Bar resource
+            properties:
+              apiVersion:
+                description: 'APIVersion defines the versioned schema of this representation
+                  of an object. Servers should convert recognized schemas to the latest
+                  internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+                type: string
+              kind:
+                description: 'Kind is a string value representing the REST resource this
+                  object represents. Servers may infer this from the endpoint the client
+                  submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                type: string
+              metadata:
+                type: object
+              spec:
+                description: Specification of the desired behavior of the Bar.
+                properties:
+                  manifests:
+                    description: Manifests represents a list of Kubernetes resources to
+                      be deployed on the managed cluster.
+                    items:
+                      description: Manifest represents a resource to be deployed on managed
+                        cluster.
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    type: array
+                type: object
+              status:
+                description: Most recently observed status of the Bar.
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: micro-dao-2048
+      namespace: default
+    spec:
+      replicas: 2
+      selector:
+        matchLabels:
+          dce.daocloud.io/component: micro-dao-2048
+      strategy:
+        rollingUpdate:
+          maxSurge: 25%
+          maxUnavailable: 25%
+        type: RollingUpdate
+      template:
+        metadata:
+          creationTimestamp: null
+          labels:
+            c: b
+            dce.daocloud.io/app: micro-dao-2048
+            dce.daocloud.io/component: micro-dao-2048
+        spec:
+          containers:
+          - env:
+            - name: demo
+              value: demo
+            - name: demo1
+              value: demo1
+            image: daocloud.io/daocloud/dao-2048:latest
+            imagePullPolicy: Always
+            name: micro-dao-2048
+            resources:
+              limits:
+                cpu: 128m
+                memory: "67108864"
+              requests:
+                cpu: "0"
+                memory: "0"
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          schedulerName: default-scheduler
+          securityContext: {}
+          terminationGracePeriodSeconds: 30

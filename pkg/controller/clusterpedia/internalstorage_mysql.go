@@ -29,7 +29,6 @@ import (
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
 	"github.com/carlory/firefly/pkg/scheme"
-	"github.com/carlory/firefly/pkg/util"
 	clientutil "github.com/carlory/firefly/pkg/util/client"
 )
 
@@ -48,7 +47,7 @@ func (ctrl *ClusterpediaController) EnsureMySQL(clusterpedia *installv1alpha1.Cl
 
 // EnsureMySQLService ensures the clusterpedia-internalstorage-mysql service exists.
 func (ctrl *ClusterpediaController) EnsureMySQLService(clusterpedia *installv1alpha1.Clusterpedia) error {
-	componentName := util.ComponentName(constants.ClusterpediaComponentInternalStorageMySQL, clusterpedia.Name)
+	componentName := constants.ClusterpediaComponentInternalStorageMySQL
 	svc := &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -102,7 +101,7 @@ func (ctrl *ClusterpediaController) EnsureMySQLSecret(clusterpedia *installv1alp
 
 // EnsureMySQLConfigMap ensures the clusterpedia-internalstorage-mysql configmap exists.
 func (ctrl *ClusterpediaController) EnsureMySQLConfigMap(clusterpedia *installv1alpha1.Clusterpedia) error {
-	svcName := util.ComponentName(constants.ClusterpediaComponentInternalStorageMySQL, clusterpedia.Name)
+	svcName := constants.ClusterpediaComponentInternalStorageMySQL
 	cm := &corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -127,7 +126,7 @@ func (ctrl *ClusterpediaController) EnsureMySQLConfigMap(clusterpedia *installv1
 
 // EnsureMySQLDeployment ensures the clusterpedia-internalstorage-mysql deployment exists.
 func (ctrl *ClusterpediaController) EnsureMySQLDeployment(clusterpedia *installv1alpha1.Clusterpedia) error {
-	componentName := util.ComponentName(constants.ClusterpediaComponentInternalStorageMySQL, clusterpedia.Name)
+	componentName := constants.ClusterpediaComponentInternalStorageMySQL
 	image := clusterpedia.Spec.Storage.MySQL.Local
 
 	deployment := &appsv1.Deployment{

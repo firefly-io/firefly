@@ -1,12 +1,12 @@
 apiVersion: install.firefly.io/v1alpha1
 kind: Clusterpedia
 metadata:
-  name: demo
+  name: clusterpedia
   namespace: firefly-system
 spec:
   controlplaneProvider:
     karmada:
-      name: demo 
+      name: karmada 
     syncResources:
     - group: ""
       resources:

@@ -56,7 +56,7 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManager(karmada *installv1alp
 func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerServiceAccount(karmada *installv1alpha1.Karmada) error {
 	sa := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      util.ComponentName(constants.FireflyComponentKarmadaManager, karmada.Name),
+			Name:      constants.FireflyComponentKarmadaManager,
 			Namespace: karmada.Namespace,
 		},
 	}
@@ -71,12 +71,12 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerServiceAccount(karmada
 func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerClusterRoleBinding(karmada *installv1alpha1.Karmada) error {
 	crb := &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: util.ComponentName(constants.FireflyComponentKarmadaManager, karmada.Name),
+			Name: fmt.Sprintf("%s-%s", constants.FireflyComponentKarmadaManager, karmada.Namespace),
 		},
 		Subjects: []rbacv1.Subject{
 			{
 				Kind:      "ServiceAccount",
-				Name:      util.ComponentName(constants.FireflyComponentKarmadaManager, karmada.Name),
+				Name:      constants.FireflyComponentKarmadaManager,
 				Namespace: karmada.Namespace,
 			},
 		},
@@ -97,13 +97,13 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerClusterRoleBinding(kar
 func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerRoleBinding(karmada *installv1alpha1.Karmada) error {
 	rb := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      util.ComponentName(constants.FireflyComponentKarmadaManager, karmada.Name),
+			Name:      constants.FireflyComponentKarmadaManager,
 			Namespace: karmada.Namespace,
 		},
 		Subjects: []rbacv1.Subject{
 			{
 				Kind:      "ServiceAccount",
-				Name:      util.ComponentName(constants.FireflyComponentKarmadaManager, karmada.Name),
+				Name:      constants.FireflyComponentKarmadaManager,
 				Namespace: karmada.Namespace,
 			},
 		},
@@ -122,7 +122,7 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerRoleBinding(karmada *i
 }
 
 func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerDeployment(karmada *installv1alpha1.Karmada) error {
-	componentName := util.ComponentName(constants.FireflyComponentKarmadaManager, karmada.Name)
+	componentName := constants.FireflyComponentKarmadaManager
 	repository := karmada.Spec.ImageRepository
 
 	fkm := karmada.Spec.ControllerManager.FireflyKarmadaManager
@@ -172,7 +172,7 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerDeployment(karmada *in
 							Name: "karmada-kubeconfig",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: fmt.Sprintf("%s-kubeconfig", karmada.Name),
+									SecretName: "karmada-kubeconfig",
 								},
 							},
 						},

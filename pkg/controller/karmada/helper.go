@@ -17,8 +17,6 @@ limitations under the License.
 package karmada
 
 import (
-	"fmt"
-
 	restclient "k8s.io/client-go/rest"
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
@@ -31,6 +29,6 @@ const (
 )
 
 func (ctrl *KarmadaController) GenerateClientConfig(karmada *installv1alpha1.Karmada) (*restclient.Config, error) {
-	secretName := fmt.Sprintf("%s-kubeconfig", karmada.Name)
+	secretName := "karmada-kubeconfig"
 	return utilresource.GetClientConfigFromKubeConfigSecret(ctrl.client, karmada.Namespace, secretName, userAgentName)
 }

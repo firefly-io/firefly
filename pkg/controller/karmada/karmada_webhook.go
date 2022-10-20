@@ -56,7 +56,7 @@ func (ctrl *KarmadaController) EnsureKaramdaWebhook(karmada *installv1alpha1.Kar
 }
 
 func (ctrl *KarmadaController) EnsureKaramdaWebhookService(karmada *installv1alpha1.Karmada) error {
-	componentName := util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name)
+	componentName := constants.KarmadaComponentWebhook
 	svc := &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -86,7 +86,7 @@ func (ctrl *KarmadaController) EnsureKaramdaWebhookService(karmada *installv1alp
 }
 
 func (ctrl *KarmadaController) EnsureKaramdaWebhookDeployment(karmada *installv1alpha1.Karmada) error {
-	componentName := util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name)
+	componentName := constants.KarmadaComponentWebhook
 	webhook := karmada.Spec.Webhook.KarmadaWebhook
 	repository := karmada.Spec.ImageRepository
 	tag := karmada.Spec.KarmadaVersion
@@ -158,7 +158,7 @@ func (ctrl *KarmadaController) EnsureKaramdaWebhookDeployment(karmada *installv1
 							Name: "kubeconfig",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: fmt.Sprintf("%s-kubeconfig", karmada.Name),
+									SecretName: "karmada-kubeconfig",
 								},
 							},
 						},
@@ -189,7 +189,7 @@ func (ctrl *KarmadaController) EnsureKarmadaWebhookConfiguration(karmada *instal
 		return err
 	}
 
-	karmadaCert, err := ctrl.client.CoreV1().Secrets(karmada.Namespace).Get(context.TODO(), fmt.Sprintf("%s-cert", util.ComponentName("karmada", karmada.Name)), metav1.GetOptions{})
+	karmadaCert, err := ctrl.client.CoreV1().Secrets(karmada.Namespace).Get(context.TODO(), "karmada-cert", metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -268,7 +268,7 @@ webhooks:
     failurePolicy: Fail
     sideEffects: None
     admissionReviewVersions: ["v1"]
-    timeoutSeconds: 3`, karmada.Namespace, caBundle, util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name))
+    timeoutSeconds: 3`, karmada.Namespace, caBundle, constants.KarmadaComponentWebhook)
 }
 
 func validatingConfig(caBundle string, karmada *installv1alpha1.Karmada) string {
@@ -348,7 +348,7 @@ webhooks:
     failurePolicy: Fail
     sideEffects: None
     admissionReviewVersions: ["v1"]
-    timeoutSeconds: 3`, karmada.Namespace, caBundle, util.ComponentName(constants.KarmadaComponentWebhook, karmada.Name))
+    timeoutSeconds: 3`, karmada.Namespace, caBundle, constants.KarmadaComponentWebhook)
 }
 
 func createValidatingWebhookConfiguration(c kubernetes.Interface, staticYaml string) error {

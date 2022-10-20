@@ -96,8 +96,8 @@ func (ctrl *FooController) createOrUpdateCRD(ctx context.Context, foo *toolkitv1
 		}
 
 		// Set the labels to indicate that the workload is created by the foo.
-		util.MergeLabel(clone, toolkitv1alpha1.FooNamespaceLabel, clone.GetNamespace())
-		util.MergeLabel(clone, toolkitv1alpha1.FooNameLabel, clone.GetName())
+		util.MergeLabel(clone, toolkitv1alpha1.FooNamespaceLabel, foo.Namespace)
+		util.MergeLabel(clone, toolkitv1alpha1.FooNameLabel, foo.Name)
 		_, err := ctrl.dynamicClient.Resource(gvr).Create(ctx, clone, metav1.CreateOptions{})
 		return err
 	}

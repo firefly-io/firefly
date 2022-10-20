@@ -21,14 +21,13 @@ import (
 
 	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/constants"
-	"github.com/carlory/firefly/pkg/util"
 )
 
 func GenerateDatabaseSecretName(clusterpedia *installv1alpha1.Clusterpedia) string {
-	componentName := util.ComponentName(constants.ClusterpediaComponentInternalStoragePostgres, clusterpedia.Name)
+	componentName := constants.ClusterpediaComponentInternalStoragePostgres
 	return fmt.Sprintf("%s-internalstorage-password", componentName)
 }
 
 func GenerateDatabaseConfigMapName(clusterpedia *installv1alpha1.Clusterpedia) string {
-	return util.ComponentName(constants.ClusterpediaComponentInternalStorage, clusterpedia.Name)
+	return constants.ClusterpediaComponentInternalStorage
 }

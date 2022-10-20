@@ -42,7 +42,6 @@ import (
 	installinformers "github.com/carlory/firefly/pkg/generated/informers/externalversions/install/v1alpha1"
 	installlisters "github.com/carlory/firefly/pkg/generated/listers/install/v1alpha1"
 	"github.com/carlory/firefly/pkg/scheme"
-	"github.com/carlory/firefly/pkg/util"
 )
 
 const (
@@ -352,7 +351,7 @@ func (ctrl *KarmadaController) EnsureScheduler(karmada *installv1alpha1.Karmada)
 }
 
 func (ctrl *KarmadaController) deleteUnableGCResources(karmada *installv1alpha1.Karmada) error {
-	bindingName := util.ComponentName(constants.FireflyComponentKarmadaManager, karmada.Name)
+	bindingName := constants.FireflyComponentKarmadaManager
 	err := ctrl.client.RbacV1beta1().ClusterRoleBindings().Delete(context.Background(), bindingName, metav1.DeleteOptions{})
 	return client.IgnoreNotFound(err)
 }

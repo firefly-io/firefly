@@ -38,7 +38,7 @@ func (ctrl *KarmadaController) EnsureKubeControllerManager(karmada *installv1alp
 }
 
 func (ctrl *KarmadaController) EnsureKubeControllerManagerDeployment(karmada *installv1alpha1.Karmada) error {
-	componentName := util.ComponentName(constants.KarmadaComponentKubeControllerManager, karmada.Name)
+	componentName := constants.KarmadaComponentKubeControllerManager
 	kcm := karmada.Spec.ControllerManager.KubeControllerManager
 	repository := karmada.Spec.ImageRepository
 	tag := karmada.Spec.KubernetesVersion
@@ -128,7 +128,7 @@ func (ctrl *KarmadaController) EnsureKubeControllerManagerDeployment(karmada *in
 							Name: "k8s-certs",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: fmt.Sprintf("%s-cert", util.ComponentName("karmada", karmada.Name)),
+									SecretName: "karmada-cert",
 								},
 							},
 						},
@@ -136,7 +136,7 @@ func (ctrl *KarmadaController) EnsureKubeControllerManagerDeployment(karmada *in
 							Name: "kubeconfig",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: fmt.Sprintf("%s-kubeconfig", karmada.Name),
+									SecretName: "karmada-kubeconfig",
 								},
 							},
 						},

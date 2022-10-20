@@ -46,7 +46,7 @@ func (ctrl *ClusterpediaController) EnsureControllerManager(clusterpedia *instal
 }
 
 func (ctrl *ClusterpediaController) EnsureControllerManagerDeployment(clusterpedia *installv1alpha1.Clusterpedia) error {
-	componentName := util.ComponentName(constants.ClusterpediaComponentControllerManager, clusterpedia.Name)
+	componentName := constants.ClusterpediaComponentControllerManager
 	manager := clusterpedia.Spec.ControllerManager
 	repository := clusterpedia.Spec.ImageRepository
 	tag := clusterpedia.Spec.Version
