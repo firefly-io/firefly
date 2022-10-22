@@ -88,11 +88,18 @@ func (ctrl *KarmadaController) EnsureKaramdaWebhookService(karmada *installv1alp
 func (ctrl *KarmadaController) EnsureKaramdaWebhookDeployment(karmada *installv1alpha1.Karmada) error {
 	componentName := constants.KarmadaComponentWebhook
 	webhook := karmada.Spec.Webhook.KarmadaWebhook
+
 	repository := karmada.Spec.ImageRepository
-	tag := karmada.Spec.KarmadaVersion
 	if webhook.ImageRepository != "" {
 		repository = webhook.ImageRepository
 	}
+
+	imageName := constants.KarmadaComponentWebhook
+	if webhook.ImageName != "" {
+		imageName = webhook.ImageName
+	}
+
+	tag := karmada.Spec.KarmadaVersion
 	if webhook.ImageTag != "" {
 		tag = webhook.ImageTag
 	}
@@ -129,7 +136,7 @@ func (ctrl *KarmadaController) EnsureKaramdaWebhookDeployment(karmada *installv1
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-webhook",
-							Image:           util.ComponentImageName(repository, constants.KarmadaComponentWebhook, tag),
+							Image:           util.ComponentImageName(repository, imageName, tag),
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"/bin/karmada-webhook"},
 							Args:            args,

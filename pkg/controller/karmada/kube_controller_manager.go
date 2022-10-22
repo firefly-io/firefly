@@ -40,11 +40,21 @@ func (ctrl *KarmadaController) EnsureKubeControllerManager(karmada *installv1alp
 func (ctrl *KarmadaController) EnsureKubeControllerManagerDeployment(karmada *installv1alpha1.Karmada) error {
 	componentName := constants.KarmadaComponentKubeControllerManager
 	kcm := karmada.Spec.ControllerManager.KubeControllerManager
+
 	repository := karmada.Spec.ImageRepository
-	tag := karmada.Spec.KubernetesVersion
+	if karmada.Spec.KubeImageRepository != "" {
+		repository = karmada.Spec.KubeImageRepository
+	}
 	if kcm.ImageRepository != "" {
 		repository = kcm.ImageRepository
 	}
+
+	imageName := "kube-controller-manager"
+	if kcm.ImageName != "" {
+		imageName = kcm.ImageName
+	}
+
+	tag := karmada.Spec.KubernetesVersion
 	if kcm.ImageTag != "" {
 		tag = kcm.ImageTag
 	}
@@ -104,7 +114,7 @@ func (ctrl *KarmadaController) EnsureKubeControllerManagerDeployment(karmada *in
 					Containers: []corev1.Container{
 						{
 							Name:            "kube-controller-manager",
-							Image:           util.ComponentImageName(repository, "kube-controller-manager", tag),
+							Image:           util.ComponentImageName(repository, imageName, tag),
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"kube-controller-manager"},
 							Args:            args,

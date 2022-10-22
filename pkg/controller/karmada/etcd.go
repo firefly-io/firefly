@@ -87,10 +87,18 @@ func (ctrl *KarmadaController) EnsureEtcdStatefulSet(karmada *installv1alpha1.Ka
 	etcdName := constants.KarmadaComponentEtcd
 	etcd := karmada.Spec.Etcd.Local
 	repository := karmada.Spec.ImageRepository
+	if karmada.Spec.KubeImageRepository != "" {
+		repository = karmada.Spec.KubeImageRepository
+	}
+
 	tag := "3.4.13-0"
+	imageName := "etcd"
 	if etcd != nil {
 		if etcd.ImageRepository != "" {
 			repository = etcd.ImageRepository
+		}
+		if etcd.ImageName != "" {
+			imageName = etcd.ImageName
 		}
 		if etcd.ImageTag != "" {
 			tag = etcd.ImageTag
@@ -120,7 +128,7 @@ func (ctrl *KarmadaController) EnsureEtcdStatefulSet(karmada *installv1alpha1.Ka
 					Containers: []corev1.Container{
 						{
 							Name:            "etcd",
-							Image:           util.ComponentImageName(repository, constants.KarmadaComponentEtcd, tag),
+							Image:           util.ComponentImageName(repository, imageName, tag),
 							ImagePullPolicy: "IfNotPresent",
 							Command: []string{
 								"/usr/local/bin/etcd",

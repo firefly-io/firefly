@@ -40,11 +40,18 @@ func (ctrl *KarmadaController) EnsureKarmadaControllerManager(karmada *installv1
 func (ctrl *KarmadaController) EnsureKarmadaControllerManagerDeployment(karmada *installv1alpha1.Karmada) error {
 	componentName := constants.KarmadaComponentControllerManager
 	kcm := karmada.Spec.ControllerManager.KarmadaControllerManager
+
 	repository := karmada.Spec.ImageRepository
-	tag := karmada.Spec.KarmadaVersion
 	if kcm.ImageRepository != "" {
 		repository = kcm.ImageRepository
 	}
+
+	imageName := constants.KarmadaComponentControllerManager
+	if kcm.ImageName != "" {
+		imageName = kcm.ImageName
+	}
+
+	tag := karmada.Spec.KarmadaVersion
 	if kcm.ImageTag != "" {
 		tag = kcm.ImageTag
 	}
@@ -92,7 +99,7 @@ func (ctrl *KarmadaController) EnsureKarmadaControllerManagerDeployment(karmada 
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-controller-manager",
-							Image:           util.ComponentImageName(repository, constants.KarmadaComponentControllerManager, tag),
+							Image:           util.ComponentImageName(repository, imageName, tag),
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"/bin/karmada-controller-manager"},
 							Args:            args,

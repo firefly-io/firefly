@@ -95,11 +95,21 @@ func (ctrl *KarmadaController) EnsureKubeAPIServerService(karmada *installv1alph
 func (ctrl *KarmadaController) EnsureKubeAPIServerDeployment(karmada *installv1alpha1.Karmada) error {
 	componentName := constants.KarmadaComponentKubeAPIServer
 	server := karmada.Spec.APIServer.KubeAPIServer
+
 	repository := karmada.Spec.ImageRepository
-	tag := karmada.Spec.KubernetesVersion
+	if karmada.Spec.KubeImageRepository != "" {
+		repository = karmada.Spec.KubeImageRepository
+	}
 	if server.ImageRepository != "" {
 		repository = server.ImageRepository
 	}
+
+	imageName := "kube-apiserver"
+	if server.ImageName != "" {
+		imageName = server.ImageName
+	}
+
+	tag := karmada.Spec.KubernetesVersion
 	if server.ImageTag != "" {
 		tag = server.ImageTag
 	}
@@ -168,7 +178,7 @@ func (ctrl *KarmadaController) EnsureKubeAPIServerDeployment(karmada *installv1a
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-apiserver",
-							Image:           util.ComponentImageName(repository, "kube-apiserver", tag),
+							Image:           util.ComponentImageName(repository, imageName, tag),
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"kube-apiserver"},
 							Args:            args,

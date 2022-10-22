@@ -39,11 +39,18 @@ func (ctrl *KarmadaController) EnsureKarmadaScheduler(karmada *installv1alpha1.K
 func (ctrl *KarmadaController) EnsureKarmadaSchedulerDeployment(karmada *installv1alpha1.Karmada) error {
 	componentName := constants.KarmadaComponentScheduler
 	scheduler := karmada.Spec.Scheduler.KarmadaScheduler
+
 	repository := karmada.Spec.ImageRepository
-	tag := karmada.Spec.KarmadaVersion
 	if scheduler.ImageRepository != "" {
 		repository = scheduler.ImageRepository
 	}
+
+	imageName := constants.KarmadaComponentScheduler
+	if scheduler.ImageName != "" {
+		imageName = scheduler.ImageName
+	}
+
+	tag := karmada.Spec.KarmadaVersion
 	if scheduler.ImageTag != "" {
 		tag = scheduler.ImageTag
 	}
@@ -88,7 +95,7 @@ func (ctrl *KarmadaController) EnsureKarmadaSchedulerDeployment(karmada *install
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-scheduler",
-							Image:           util.ComponentImageName(repository, constants.KarmadaComponentScheduler, tag),
+							Image:           util.ComponentImageName(repository, imageName, tag),
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"/bin/karmada-scheduler"},
 							Args:            args,

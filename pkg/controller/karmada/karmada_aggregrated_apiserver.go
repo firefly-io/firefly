@@ -86,10 +86,14 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerDeployment(karmad
 	componentName := constants.KarmadaComponentAggregratedAPIServer
 	server := karmada.Spec.APIServer.KarmadaAggregratedAPIServer
 	repository := karmada.Spec.ImageRepository
-	tag := karmada.Spec.KarmadaVersion
 	if server.ImageRepository != "" {
 		repository = server.ImageRepository
 	}
+	imageName := constants.KarmadaComponentAggregratedAPIServer
+	if server.ImageName != "" {
+		imageName = server.ImageName
+	}
+	tag := karmada.Spec.KarmadaVersion
 	if server.ImageTag != "" {
 		tag = server.ImageTag
 	}
@@ -142,7 +146,7 @@ func (ctrl *KarmadaController) EnsureKarmadaAggregatedAPIServerDeployment(karmad
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-aggregated-apiserver",
-							Image:           util.ComponentImageName(repository, constants.KarmadaComponentAggregratedAPIServer, tag),
+							Image:           util.ComponentImageName(repository, imageName, tag),
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"/bin/karmada-aggregated-apiserver"},
 							Args:            args,

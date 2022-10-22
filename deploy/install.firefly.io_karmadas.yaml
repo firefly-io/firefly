@@ -741,6 +741,11 @@ spec:
               karmadaVersion:
                 description: KarmadaVersion is the target version of the karmada.
                 type: string
+              kubeImageRepository:
+                description: KubeImageRepository sets the kubernetes container registry
+                  to pull images from. If empty, means that use the default container
+                  registry defined by the ImageRepository field.
+                type: string
               kubernetesVersion:
                 description: KubernetesVersion is the target version of the kube-apiserver
                   component.

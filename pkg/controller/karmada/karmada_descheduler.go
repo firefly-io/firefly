@@ -58,11 +58,18 @@ func (ctrl *KarmadaController) RemoveKarmadaDescheduler(karmada *installv1alpha1
 func (ctrl *KarmadaController) EnsureKarmadaDeschedulerDeployment(karmada *installv1alpha1.Karmada) error {
 	componentName := constants.KarmadaComponentDescheduler
 	scheduler := karmada.Spec.Scheduler.KarmadaDescheduler
+
 	repository := karmada.Spec.ImageRepository
-	tag := karmada.Spec.KarmadaVersion
 	if scheduler.ImageRepository != "" {
 		repository = scheduler.ImageRepository
 	}
+
+	imageName := constants.KarmadaComponentDescheduler
+	if scheduler.ImageName != "" {
+		imageName = scheduler.ImageName
+	}
+
+	tag := karmada.Spec.KarmadaVersion
 	if scheduler.ImageTag != "" {
 		tag = scheduler.ImageTag
 	}
@@ -97,7 +104,7 @@ func (ctrl *KarmadaController) EnsureKarmadaDeschedulerDeployment(karmada *insta
 					Containers: []corev1.Container{
 						{
 							Name:            "karmada-descheduler",
-							Image:           util.ComponentImageName(repository, constants.KarmadaComponentDescheduler, tag),
+							Image:           util.ComponentImageName(repository, imageName, tag),
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"/bin/karmada-descheduler"},
 							Args:            args,

@@ -126,10 +126,16 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerDeployment(karmada *in
 	repository := karmada.Spec.ImageRepository
 
 	fkm := karmada.Spec.ControllerManager.FireflyKarmadaManager
-	tag := "latest"
 	if fkm.ImageRepository != "" {
 		repository = fkm.ImageRepository
 	}
+
+	imageName := constants.FireflyComponentKarmadaManager
+	if fkm.ImageName != "" {
+		imageName = fkm.ImageName
+	}
+
+	tag := "latest"
 	if fkm.ImageTag != "" {
 		tag = fkm.ImageTag
 	}
@@ -180,7 +186,7 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerDeployment(karmada *in
 					Containers: []corev1.Container{
 						{
 							Name:            componentName,
-							Image:           util.ComponentImageName(repository, constants.FireflyComponentKarmadaManager, tag),
+							Image:           util.ComponentImageName(repository, imageName, tag),
 							ImagePullPolicy: corev1.PullAlways,
 							Command:         []string{"firefly-karmada-manager"},
 							Args:            args,
