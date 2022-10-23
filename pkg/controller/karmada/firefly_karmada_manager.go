@@ -82,7 +82,7 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerClusterRoleBinding(kar
 		},
 		RoleRef: rbacv1.RoleRef{
 			Kind:     "ClusterRole",
-			Name:     "firefly:karmada-manager",
+			Name:     "cluster-admin",
 			APIGroup: "rbac.authorization.k8s.io",
 		},
 	}

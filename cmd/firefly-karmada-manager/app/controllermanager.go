@@ -35,7 +35,9 @@ import (
 	"k8s.io/apiserver/pkg/server/healthz"
 	"k8s.io/apiserver/pkg/server/mux"
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
+	discovery "k8s.io/client-go/discovery"
 	cacheddiscovery "k8s.io/client-go/discovery/cached"
+	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/informers"
 	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/metadata"
@@ -204,10 +206,12 @@ func Run(c *config.CompletedConfig, stopCh <-chan struct{}) error {
 			klog.Fatalf("error starting controllers: %v", err)
 		}
 
+		controllerContext.KarmadaDynamicInformerFactory.Start(stopCh)
 		controllerContext.KarmadaKubeInformerFactory.Start(stopCh)
 		controllerContext.KarmadaInformerFactory.Start(stopCh)
-		controllerContext.FireflyKubeInformerFactory.Start(stopCh)
 		controllerContext.KarmadaFireflyInformerFactory.Start(stopCh)
+		controllerContext.FireflyDynamicInformerFactory.Start(stopCh)
+		controllerContext.FireflyKubeInformerFactory.Start(stopCh)
 		controllerContext.FireflyInformerFactory.Start(stopCh)
 		controllerContext.ObjectOrMetadataInformerFactory.Start(stopCh)
 		close(controllerContext.InformersStarted)
@@ -298,6 +302,9 @@ type ControllerContext struct {
 	// FireflyClientBuilder will provide a client for this controller to use
 	FireflyClientBuilder clientbuilder.FireflyControllerClientBuilder
 
+	// KarmadaKubeInformerFactory gives access to dynamic informers for the controller.
+	KarmadaDynamicInformerFactory dynamicinformer.DynamicSharedInformerFactory
+
 	// KarmadaKubeInformerFactory gives access to kubernetes informers for the controller.
 	KarmadaKubeInformerFactory informers.SharedInformerFactory
 
@@ -306,6 +313,9 @@ type ControllerContext struct {
 
 	// KarmadaInformerFactory gives access to firefly informers for the controller.
 	KarmadaInformerFactory karmadainformers.SharedInformerFactory
+
+	// FireflyDynamicInformerFactory gives access to dynamic informers for the controller.
+	FireflyDynamicInformerFactory dynamicinformer.DynamicSharedInformerFactory
 
 	// FireflyKubeInformerFactory gives access to firefly informers for the controller.
 	FireflyKubeInformerFactory informers.SharedInformerFactory
@@ -334,6 +344,9 @@ type ControllerContext struct {
 
 	// AvailableResources is a map listing currently available resources
 	AvailableResources map[schema.GroupVersionResource]bool
+
+	// HostClusterAvailableResources is a map listing currently available resources on the host cluster.
+	HostClusterAvailableResources map[schema.GroupVersionResource]bool
 
 	// InformersStarted is closed after all of the controllers have been initialized and are running.  After this point it is safe,
 	// for an individual controller to start the shared informers. Before it is closed, they should not.
@@ -378,17 +391,37 @@ func NewControllerInitializers() map[string]InitFunc {
 	controllers["estimator"] = startEstimatorController
 	controllers["node"] = startNodeController
 	controllers["foo"] = startFooController
+	controllers["kubean"] = startKubeanController
 	return controllers
+}
+
+// GetKarmadaAvailableResources gets the map which contains all available resources of the karmada-apiserver
+// TODO: In general, any controller checking this needs to be dynamic so
+// users don't have to restart their controller manager if they change the apiserver.
+// Until we get there, the structure here needs to be exposed for the construction of a proper ControllerContext.
+func GetKarmadaAvailableResources(clientBuilder clientbuilder.KarmadaControllerClientBuilder) (map[schema.GroupVersionResource]bool, error) {
+	client := clientBuilder.ClientOrDie("controller-discovery")
+	discoveryClient := client.Discovery()
+	return GetAvailableResources(discoveryClient)
+}
+
+// GetHostClusterAvailableResources gets the map which contains all available resources of the kube-apiserver
+// on the host cluster.
+// TODO: In general, any controller checking this needs to be dynamic so
+// users don't have to restart their controller manager if they change the apiserver.
+// Until we get there, the structure here needs to be exposed for the construction of a proper ControllerContext.
+func GetHostClusterAvailableResources(clientBuilder clientbuilder.FireflyControllerClientBuilder) (map[schema.GroupVersionResource]bool, error) {
+	client := clientBuilder.ClientOrDie("controller-discovery")
+	discoveryClient := client.Discovery()
+	return GetAvailableResources(discoveryClient)
 }
 
 // GetAvailableResources gets the map which contains all available resources of the apiserver
 // TODO: In general, any controller checking this needs to be dynamic so
 // users don't have to restart their controller manager if they change the apiserver.
 // Until we get there, the structure here needs to be exposed for the construction of a proper ControllerContext.
-func GetAvailableResources(clientBuilder clientbuilder.KarmadaControllerClientBuilder) (map[schema.GroupVersionResource]bool, error) {
-	client := clientBuilder.ClientOrDie("controller-discovery")
-	discoveryClient := client.Discovery()
-	_, resourceMap, err := discoveryClient.ServerGroupsAndResources()
+func GetAvailableResources(client discovery.DiscoveryInterface) (map[schema.GroupVersionResource]bool, error) {
+	_, resourceMap, err := client.ServerGroupsAndResources()
 	if err != nil {
 		utilruntime.HandleError(fmt.Errorf("unable to get all supported resources from server: %v", err))
 	}
@@ -417,6 +450,9 @@ func CreateControllerContext(s *config.CompletedConfig, karmadaClientBuilder cli
 	karmadaKubeClient := karmadaClientBuilder.ClientOrDie("karmada-kube-shared-informers")
 	karmadaKubeSharedInformers := informers.NewSharedInformerFactory(karmadaKubeClient, ResyncPeriod(s)())
 
+	karmadaDynamicClient := karmadaClientBuilder.DynamicClientOrDie("karmada-dynamic-shared-informers")
+	karmadaDynamicSharedInformers := dynamicinformer.NewDynamicSharedInformerFactory(karmadaDynamicClient, ResyncPeriod(s)())
+
 	karmadaFireflyClient := karmadaClientBuilder.KarmadaFireflyClientOrDie("karmada-firefly-shared-informers")
 	karmadaFireflySharedInformers := karmadafireflyinformers.NewSharedInformerFactory(karmadaFireflyClient, ResyncPeriod(s)())
 
@@ -436,6 +472,9 @@ func CreateControllerContext(s *config.CompletedConfig, karmadaClientBuilder cli
 	fireflyKubeClient := fireflyKubeClientBuilder.ClientOrDie("firefly-kube-shared-informers")
 	fireflyKubeSharedInformers := informers.NewSharedInformerFactory(fireflyKubeClient, ResyncPeriod(s)())
 
+	fireflyDynamicClient := fireflyKubeClientBuilder.DynamicClientOrDie("firefly-dynamic-shared-informers")
+	fireflyDynamicSharedInformers := dynamicinformer.NewDynamicSharedInformerFactory(fireflyDynamicClient, ResyncPeriod(s)())
+
 	fireflyClientConfig := fireflyKubeClientBuilder.ConfigOrDie("firefly-shared-informers")
 	fireflyClient := fireflyversioned.NewForConfigOrDie(fireflyClientConfig)
 	fireflySharedInformers := fireflyinformers.NewFilteredSharedInformerFactory(fireflyClient, ResyncPeriod(s)(), s.EstimatorNamespace, nil)
@@ -454,7 +493,12 @@ func CreateControllerContext(s *config.CompletedConfig, karmadaClientBuilder cli
 		restMapper.Reset()
 	}, 30*time.Second, stop)
 
-	availableResources, err := GetAvailableResources(karmadaClientBuilder)
+	availableResources, err := GetKarmadaAvailableResources(karmadaClientBuilder)
+	if err != nil {
+		return ControllerContext{}, err
+	}
+
+	hostClusterAvailableResources, err := GetHostClusterAvailableResources(fireflyKubeClientBuilder)
 	if err != nil {
 		return ControllerContext{}, err
 	}
@@ -462,9 +506,11 @@ func CreateControllerContext(s *config.CompletedConfig, karmadaClientBuilder cli
 	ctx := ControllerContext{
 		KarmadaClientBuilder:            karmadaClientBuilder,
 		FireflyClientBuilder:            fireflyKubeClientBuilder,
+		KarmadaDynamicInformerFactory:   karmadaDynamicSharedInformers,
 		KarmadaKubeInformerFactory:      karmadaKubeSharedInformers,
 		KarmadaFireflyInformerFactory:   karmadaFireflySharedInformers,
 		KarmadaInformerFactory:          karmadaSharedInformers,
+		FireflyDynamicInformerFactory:   fireflyDynamicSharedInformers,
 		FireflyKubeInformerFactory:      fireflyKubeSharedInformers,
 		FireflyInformerFactory:          fireflySharedInformers,
 		ObjectOrMetadataInformerFactory: informerfactory.NewInformerFactory(karmadaKubeSharedInformers, metadataInformers),
@@ -473,6 +519,7 @@ func CreateControllerContext(s *config.CompletedConfig, karmadaClientBuilder cli
 		KarmadaName:                     s.KarmadaName,
 		RESTMapper:                      restMapper,
 		AvailableResources:              availableResources,
+		HostClusterAvailableResources:   hostClusterAvailableResources,
 		InformersStarted:                make(chan struct{}),
 		ResyncPeriod:                    ResyncPeriod(s),
 	}

@@ -18,6 +18,7 @@ package clientbuilder
 
 import (
 	karmadaversioned "github.com/karmada-io/karmada/pkg/generated/clientset/versioned"
+	"k8s.io/client-go/dynamic"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/controller-manager/pkg/clientbuilder"
 	"k8s.io/klog/v2"
@@ -28,6 +29,8 @@ import (
 // KarmadaControllerClientBuilder allows you to get clients and configs for controllers of the firefly-karmada-manager
 type KarmadaControllerClientBuilder interface {
 	clientbuilder.ControllerClientBuilder
+	DynamicClient(name string) (dynamic.Interface, error)
+	DynamicClientOrDie(name string) dynamic.Interface
 	KarmadaClient(name string) (karmadaversioned.Interface, error)
 	KarmadaClientOrDie(name string) karmadaversioned.Interface
 	KarmadaFireflyClient(name string) (fireflyclient.Interface, error)
@@ -49,6 +52,25 @@ func NewSimpleKarmadaControllerClientBuilder(config *restclient.Config) SimpleKa
 // SimpleKarmadaControllerClientBuilder returns a fixed client with different user agents
 type SimpleKarmadaControllerClientBuilder struct {
 	clientbuilder.SimpleControllerClientBuilder
+}
+
+// DynamicClient returns a dynamic.Interface built from the ClientBuilder
+func (b SimpleKarmadaControllerClientBuilder) DynamicClient(name string) (dynamic.Interface, error) {
+	clientConfig, err := b.Config(name)
+	if err != nil {
+		return nil, err
+	}
+	return dynamic.NewForConfig(clientConfig)
+}
+
+// DynamicClientOrDie returns a karmadaversioned.interface built from the ClientBuilder with no error.
+// If it gets an error getting the client, it will log the error and kill the process it's running in.
+func (b SimpleKarmadaControllerClientBuilder) DynamicClientOrDie(name string) dynamic.Interface {
+	client, err := b.DynamicClient(name)
+	if err != nil {
+		klog.Fatal(err)
+	}
+	return client
 }
 
 // KarmadaClient returns a karmadaversioned.Interface built from the ClientBuilder

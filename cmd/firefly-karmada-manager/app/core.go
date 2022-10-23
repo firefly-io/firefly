@@ -20,11 +20,13 @@ import (
 	"context"
 	"fmt"
 
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/controller-manager/controller"
 
 	"github.com/carlory/firefly/pkg/karmada/controller/estimator"
 	"github.com/carlory/firefly/pkg/karmada/controller/foo"
+	"github.com/carlory/firefly/pkg/karmada/controller/kubean"
 	"github.com/carlory/firefly/pkg/karmada/controller/node"
 )
 
@@ -74,6 +76,38 @@ func startFooController(ctx context.Context, controllerContext ControllerContext
 	)
 	if err != nil {
 		return nil, true, fmt.Errorf("failed to start the foo controller: %v", err)
+	}
+	go ctrl.Run(ctx, 1)
+	return nil, true, nil
+}
+
+func startKubeanController(ctx context.Context, controllerContext ControllerContext) (controller.Interface, bool, error) {
+	gvrs := []schema.GroupVersionResource{
+		{Group: "kubean.io", Version: "v1alpha1", Resource: "clusteroperations"},
+		{Group: "kubean.io", Version: "v1alpha1", Resource: "clusters"},
+		{Group: "kubean.io", Version: "v1alpha1", Resource: "localartifactsets"},
+		{Group: "kubean.io", Version: "v1alpha1", Resource: "manifests"},
+	}
+	for _, gvr := range gvrs {
+		if !controllerContext.HostClusterAvailableResources[gvr] {
+			return nil, false, nil
+		}
+		if !controllerContext.AvailableResources[gvr] {
+			return nil, false, nil
+		}
+	}
+
+	clusterInformers := controllerContext.KarmadaDynamicInformerFactory.ForResource(schema.GroupVersionResource{Group: "kubean.io", Version: "v1alpha1", Resource: "clusters"})
+	hostClusterInformers := controllerContext.FireflyDynamicInformerFactory.ForResource(schema.GroupVersionResource{Group: "kubean.io", Version: "v1alpha1", Resource: "clusters"})
+	ctrl, err := kubean.NewClusterController(
+		controllerContext.KarmadaClientBuilder.ClientOrDie("kubean-cluster-controller"),
+		controllerContext.KarmadaClientBuilder.DynamicClientOrDie("kubean-cluster-controller"),
+		clusterInformers,
+		controllerContext.FireflyClientBuilder.DynamicClientOrDie("kubean-cluster-controller"),
+		hostClusterInformers,
+	)
+	if err != nil {
+		return nil, true, fmt.Errorf("failed to start the kubean cluster controller: %v", err)
 	}
 	go ctrl.Run(ctx, 1)
 	return nil, true, nil
