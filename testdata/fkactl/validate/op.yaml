@@ -1,0 +1,59 @@
+apiVersion: policy.karmada.io/v1alpha1
+kind: OverridePolicy
+metadata:
+  name: micro-dao-2048
+spec:
+  overrideRules:
+  - overriders:
+      plaintext:
+      # replace container name
+      - operator: replace
+        path: /spec/template/spec/containers/0/name
+        value: "app"
+      # replace imageName and imageTag
+      - operator: replace
+        path: /spec/template/spec/containers/0/image
+        value: "daocloud.io/daocloud/dao-2048:abc"
+      # replace env value
+      - operator: replace
+        path: /spec/template/spec/containers/0/env/0/value
+        value: abc
+      # delete env
+      - operator: remove
+        path: /spec/template/spec/containers/0/env/1
+      # add env
+      - operator: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: add
+          value: adddddd
+          fff: dd
+      # add deployment label
+      - operator: add
+        path: /metadata/labels/a
+        value: b
+      # add deployment annotations
+      - operator: add
+        path: /metadata/annotations/a
+        value: b
+      # add pod label
+      - operator: add
+        path: /spec/template/metadata/labels/a
+        value: b
+      # replace pod label
+      - operator: replace
+        path: /spec/template/metadata/labels/c
+        value: c
+      # add pod annotations
+      - operator: add
+        path: /spec/template/metadata/annotations
+        value:
+          a: b
+    targetCluster:
+      clusterNames:
+      - ik8s
+  overriders: {}
+  resourceSelectors:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: micro-dao-2048
