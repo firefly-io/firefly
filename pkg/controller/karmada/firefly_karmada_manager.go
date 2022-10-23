@@ -218,7 +218,7 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerCRDs(karmada *installv
 	}
 	result := utilresource.NewBuilder(clientConfig).
 		Unstructured().
-		FilenameParam(false, &resource.FilenameOptions{Recursive: false, Filenames: []string{"./pkg/karmada/crds"}}).
+		FilenameParam(false, &resource.FilenameOptions{Recursive: true, Filenames: []string{"./pkg/karmada/crds"}}).
 		Flatten().Do()
 	return result.Visit(func(info *resource.Info, err error) error {
 		if err != nil {
