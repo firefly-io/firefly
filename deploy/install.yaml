@@ -175,17 +175,3 @@ webhooks:
   sideEffects: None
   admissionReviewVersions: ["v1"]
   timeoutSeconds: 3
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: firefly:karmada-manager
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - nodes
-  verbs:
-  - get
-  - list
-  - watch
