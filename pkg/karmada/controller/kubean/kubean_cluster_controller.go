@@ -60,6 +60,7 @@ var (
 
 // NewClusterController returns a new *Controller.
 func NewClusterController(
+	karmadaNamespace string,
 	client clientset.Interface,
 	dynamicClient dynamic.Interface,
 	clustersInformer informers.GenericInformer,
@@ -73,6 +74,7 @@ func NewClusterController(
 	}
 
 	ctrl := &ClusterController{
+		karmadaNamespace:   karmadaNamespace,
 		client:             client,
 		clusterClient:      dynamicClient.Resource(clusterGVR),
 		clustersLister:     clustersInformer.Lister(),
@@ -94,18 +96,21 @@ func NewClusterController(
 
 	hostClustersInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
-			cluster := obj.(*unstructured.Unstructured)
+			hostCluster := obj.(*unstructured.Unstructured)
+			cluster := convert_kubean_cluster_host_to_karmada(hostCluster)
 			ctrl.updateStatus(cluster)
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
-			cluster := newObj.(*unstructured.Unstructured)
+			hostCluster := newObj.(*unstructured.Unstructured)
+			cluster := convert_kubean_cluster_host_to_karmada(hostCluster)
 			ctrl.updateStatus(cluster)
 		},
 		DeleteFunc: func(obj interface{}) {
-			cluster, ok := obj.(*unstructured.Unstructured)
+			hostCluster, ok := obj.(*unstructured.Unstructured)
 			if !ok {
 				return
 			}
+			cluster := convert_kubean_cluster_host_to_karmada(hostCluster)
 			ctrl.updateStatus(cluster)
 		},
 	})
@@ -126,6 +131,8 @@ type ClusterController struct {
 	hostClusterClient  dynamic.NamespaceableResourceInterface
 	hostClustersLister cache.GenericLister
 	hostClustersSynced cache.InformerSynced
+
+	karmadaNamespace string
 
 	// Kubean that need to be updated. A channel is inappropriate here,
 	// because it allows services with lots of pods to be serviced much
@@ -150,8 +157,8 @@ func (ctrl *ClusterController) Run(ctx context.Context, workers int) {
 
 	defer ctrl.queue.ShutDown()
 
-	klog.Infof("Starting cluster controller")
-	defer klog.Infof("Shutting down cluster controller")
+	klog.Infof("Starting kubean cluster controller")
+	defer klog.Infof("Shutting down kubean cluster controller")
 
 	if !cache.WaitForNamedCacheSync("cluster", ctx.Done(), ctrl.clustersSynced, ctrl.hostClustersSynced) {
 		return
@@ -308,39 +315,40 @@ func (ctrl *ClusterController) syncCluster(ctx context.Context, key string) erro
 
 	klog.InfoS("Syncing cluster", "cluster", klog.KObj(cluster))
 
-	dropInvaildFields(cluster)
+	hostCluster := convert_kubean_cluster_karmada_to_host(ctrl.karmadaNamespace, cluster)
+	klog.InfoS("convert kubean cluster from karmada to host", "karmada", klog.KObj(cluster), "host", klog.KObj(hostCluster))
+	dropInvaildFields(hostCluster)
 
-	existing, err := ctrl.hostClusterClient.Get(ctx, cluster.GetName(), metav1.GetOptions{})
+	existing, err := ctrl.hostClusterClient.Get(ctx, hostCluster.GetName(), metav1.GetOptions{})
 	if err != nil {
 		if !errors.IsNotFound(err) {
-			klog.ErrorS(err, "failed to get object from host", "cluster", cluster.GetName())
+			klog.ErrorS(err, "failed to get object from host", "cluster", hostCluster.GetName())
 			return err
 		}
-		klog.InfoS("Creating cluster on the host cluster", klog.KObj(cluster))
-		// todo
-		_, err := ctrl.hostClusterClient.Create(ctx, cluster, metav1.CreateOptions{})
+		klog.InfoS("Creating cluster on the host cluster", "cluster", klog.KObj(hostCluster))
+		_, err := ctrl.hostClusterClient.Create(ctx, hostCluster, metav1.CreateOptions{})
 		if err != nil {
-			klog.ErrorS(err, "failed to create object on the host", "cluster", cluster.GetName())
+			klog.ErrorS(err, "failed to create object on the host", "cluster", hostCluster.GetName())
 			return err
 		}
 		return nil
 	}
 
-	cluster.SetUID(existing.GetUID())
-	cluster.SetResourceVersion(existing.GetResourceVersion())
-	_, err = ctrl.hostClusterClient.Update(ctx, cluster, metav1.UpdateOptions{})
+	hostCluster.SetUID(existing.GetUID())
+	hostCluster.SetResourceVersion(existing.GetResourceVersion())
+	_, err = ctrl.hostClusterClient.Update(ctx, hostCluster, metav1.UpdateOptions{})
 	if err != nil {
-		klog.ErrorS(err, "failed to update object on the host", "cluster", cluster.GetName())
+		klog.ErrorS(err, "failed to update object on the host", "cluster", hostCluster.GetName())
 	}
 	return err
 }
 
-func (ctrl *ClusterController) updateStatus(hostCluster *unstructured.Unstructured) error {
-	existing, err := ctrl.clusterClient.Get(context.TODO(), hostCluster.GetName(), metav1.GetOptions{})
+func (ctrl *ClusterController) updateStatus(cluster *unstructured.Unstructured) error {
+	existing, err := ctrl.clusterClient.Get(context.TODO(), cluster.GetName(), metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	toUpdate := hostCluster.DeepCopy()
+	toUpdate := cluster.DeepCopy()
 	dropInvaildFields(toUpdate)
 	toUpdate.SetUID(existing.GetUID())
 	toUpdate.SetResourceVersion(existing.GetResourceVersion())
@@ -352,17 +360,10 @@ func (ctrl *ClusterController) updateStatus(hostCluster *unstructured.Unstructur
 }
 
 func (ctrl *ClusterController) deleteUnableGCResources(ctx context.Context, cluster *unstructured.Unstructured) error {
-	return ctrl.hostClusterClient.Delete(ctx, cluster.GetName(), metav1.DeleteOptions{})
-}
-
-func dropInvaildFields(cluster *unstructured.Unstructured) {
-	cluster.SetFinalizers(nil)
-	cluster.SetOwnerReferences(nil)
-	cluster.SetResourceVersion("")
-	cluster.SetUID("")
-	cluster.SetOwnerReferences(nil)
-	cluster.SetCreationTimestamp(metav1.Time{})
-	cluster.SetDeletionTimestamp(nil)
-	cluster.SetGeneration(0)
-	cluster.SetGenerateName("")
+	hostCluster := convert_kubean_cluster_karmada_to_host(ctrl.karmadaNamespace, cluster)
+	err := ctrl.hostClusterClient.Delete(ctx, hostCluster.GetName(), metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	return nil
 }

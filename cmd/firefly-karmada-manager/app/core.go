@@ -99,7 +99,9 @@ func startKubeanController(ctx context.Context, controllerContext ControllerCont
 
 	clusterInformers := controllerContext.KarmadaDynamicInformerFactory.ForResource(schema.GroupVersionResource{Group: "kubean.io", Version: "v1alpha1", Resource: "clusters"})
 	hostClusterInformers := controllerContext.FireflyDynamicInformerFactory.ForResource(schema.GroupVersionResource{Group: "kubean.io", Version: "v1alpha1", Resource: "clusters"})
-	ctrl, err := kubean.NewClusterController(
+
+	clusterctrl, err := kubean.NewClusterController(
+		controllerContext.EstimatorNamespace,
 		controllerContext.KarmadaClientBuilder.ClientOrDie("kubean-cluster-controller"),
 		controllerContext.KarmadaClientBuilder.DynamicClientOrDie("kubean-cluster-controller"),
 		clusterInformers,
@@ -109,6 +111,20 @@ func startKubeanController(ctx context.Context, controllerContext ControllerCont
 	if err != nil {
 		return nil, true, fmt.Errorf("failed to start the kubean cluster controller: %v", err)
 	}
-	go ctrl.Run(ctx, 1)
+	go clusterctrl.Run(ctx, 1)
+
+	clusterrefctl, err := kubean.NewClusterRefController(
+		controllerContext.KarmadaClientBuilder.ClientOrDie("kubean-clusterref-controller"),
+		clusterInformers,
+		controllerContext.KarmadaKubeInformerFactory.Core().V1().ConfigMaps(),
+		controllerContext.EstimatorNamespace,
+		controllerContext.FireflyClientBuilder.ClientOrDie("kubean-clusterref-controller"),
+	)
+	if err != nil {
+		return nil, true, fmt.Errorf("failed to start the kubean clusterref controller: %v", err)
+	}
+
+	go clusterrefctl.Run(ctx, 1)
+
 	return nil, true, nil
 }
