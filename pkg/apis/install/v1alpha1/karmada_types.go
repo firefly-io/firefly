@@ -93,11 +93,17 @@ type KarmadaSpec struct {
 	// +optional
 	ImageRepository string `json:"imageRepository,omitempty"`
 
-	// KubeImageRepository sets the kubernetes container registry to pull images from.
+	// KubeImageRepository sets the container registry to pull kubernetes images from.
 	// If empty, means that use the default container registry defined by the ImageRepository
 	// field.
 	// +optional
 	KubeImageRepository string `json:"kubeImageRepository,omitempty"`
+
+	// FireflyImageRepository sets the container registry to pull firelfy's images from.
+	// If empty, means that use the default container registry defined by the ImageRepository
+	// field.
+	// +optional
+	FireflyImageRepository string `json:"fireflyImageRepository,omitempty"`
 
 	// FeatureGates enabled by the user.
 	// If you don't know that a feature gate should be applied to which components, you can

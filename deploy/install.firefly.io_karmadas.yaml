@@ -734,6 +734,11 @@ spec:
                   - CustomizedClusterResourceModeling: https://karmada.io/docs/userguide/scheduling/cluster-resources#start-to-use-cluster-resource-models
                   More info: https://github.com/karmada-io/karmada/blob/master/pkg/features/features.go'
                 type: object
+              fireflyImageRepository:
+                description: FireflyImageRepository sets the container registry to
+                  pull firelfy's images from. If empty, means that use the default
+                  container registry defined by the ImageRepository field.
+                type: string
               imageRepository:
                 description: ImageRepository sets the container registry to pull images
                   from. If empty, `ghcr.io/carlory` will be used by default.
@@ -742,8 +747,8 @@ spec:
                 description: KarmadaVersion is the target version of the karmada.
                 type: string
               kubeImageRepository:
-                description: KubeImageRepository sets the kubernetes container registry
-                  to pull images from. If empty, means that use the default container
+                description: KubeImageRepository sets the container registry to pull
+                  kubernetes images from. If empty, means that use the default container
                   registry defined by the ImageRepository field.
                 type: string
               kubernetesVersion:

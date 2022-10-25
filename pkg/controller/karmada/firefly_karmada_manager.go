@@ -123,9 +123,11 @@ func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerRoleBinding(karmada *i
 
 func (ctrl *KarmadaController) EnsureFireflyKarmadaManagerDeployment(karmada *installv1alpha1.Karmada) error {
 	componentName := constants.FireflyComponentKarmadaManager
-	repository := karmada.Spec.ImageRepository
-
 	fkm := karmada.Spec.ControllerManager.FireflyKarmadaManager
+	repository := karmada.Spec.ImageRepository
+	if karmada.Spec.FireflyImageRepository != "" {
+		repository = karmada.Spec.FireflyImageRepository
+	}
 	if fkm.ImageRepository != "" {
 		repository = fkm.ImageRepository
 	}
