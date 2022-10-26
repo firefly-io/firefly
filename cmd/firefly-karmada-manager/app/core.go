@@ -111,6 +111,7 @@ func startKubeanController(ctx context.Context, controllerContext ControllerCont
 	if err != nil {
 		return nil, true, fmt.Errorf("failed to start the kubean cluster controller: %v", err)
 	}
+
 	go clusterctrl.Run(ctx, 1)
 
 	clusterrefctl, err := kubean.NewClusterRefController(
@@ -125,6 +126,21 @@ func startKubeanController(ctx context.Context, controllerContext ControllerCont
 	}
 
 	go clusterrefctl.Run(ctx, 1)
+
+	manifestInformers := controllerContext.KarmadaDynamicInformerFactory.ForResource(schema.GroupVersionResource{Group: "kubean.io", Version: "v1alpha1", Resource: "manifests"})
+	hostManifestInformers := controllerContext.FireflyDynamicInformerFactory.ForResource(schema.GroupVersionResource{Group: "kubean.io", Version: "v1alpha1", Resource: "manifests"})
+
+	manifestctrl, err := kubean.NewManifestController(
+		controllerContext.KarmadaClientBuilder.ClientOrDie("kubean-manifest-controller"),
+		controllerContext.KarmadaClientBuilder.DynamicClientOrDie("kubean-manifest-controller"),
+		manifestInformers,
+		hostManifestInformers,
+	)
+	if err != nil {
+		return nil, true, fmt.Errorf("failed to start the kubean manifest controller: %v", err)
+	}
+
+	go manifestctrl.Run(ctx, 1)
 
 	return nil, true, nil
 }
