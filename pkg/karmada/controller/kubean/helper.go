@@ -133,6 +133,14 @@ func getVarsConfRef(cluster *unstructured.Unstructured) (string, string, bool) {
 	return "", "", false
 }
 
+func setClusterRetainFields(new, old *unstructured.Unstructured) error {
+	val, ok, err := unstructured.NestedMap(old.Object, "spec", "kubeconfRef")
+	if ok {
+		return unstructured.SetNestedMap(new.Object, val, "spec", "kubeconfRef")
+	}
+	return err
+}
+
 func dropInvaildFields(obj metav1.Object) {
 	obj.SetFinalizers(nil)
 	obj.SetOwnerReferences(nil)

@@ -336,6 +336,7 @@ func (ctrl *ClusterController) syncCluster(ctx context.Context, key string) erro
 
 	hostCluster.SetUID(existing.GetUID())
 	hostCluster.SetResourceVersion(existing.GetResourceVersion())
+	setClusterRetainFields(hostCluster, existing)
 	_, err = ctrl.hostClusterClient.Update(ctx, hostCluster, metav1.UpdateOptions{})
 	if err != nil {
 		klog.ErrorS(err, "failed to update object on the host", "cluster", hostCluster.GetName())

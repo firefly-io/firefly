@@ -31,6 +31,10 @@ import (
 )
 
 func startEstimatorController(ctx context.Context, controllerContext ControllerContext) (controller.Interface, bool, error) {
+	if !controllerContext.HostClusterAvailableResources[schema.GroupVersionResource{Group: "install.firefly.io", Version: "v1alpha1", Resource: "karmadas"}] {
+		return nil, false, nil
+	}
+
 	ctrl, err := estimator.NewEstimatorController(
 		controllerContext.KarmadaClientBuilder.ClientOrDie("firefly-estimator-controller"),
 		controllerContext.KarmadaClientBuilder.KarmadaClientOrDie("firefly-estimator-controller"),
