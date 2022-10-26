@@ -78,6 +78,7 @@ func NewManifestController(
 		DeleteFunc: ctrl.deleteManifest,
 	})
 	hostManifestInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    ctrl.addManifest,
 		UpdateFunc: ctrl.updateManifest,
 		DeleteFunc: ctrl.deleteManifest,
 	})
