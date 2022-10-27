@@ -6,10 +6,10 @@
 
 - Karmada Lifecycle Management
 
-  Provide a centralized control plane to manage multiple Karmada instances, and will support integrate with more existing kubernetes tool chain by default, like Clusterpedia in the future. 
+  Provide a centralized control plane to manage multiple Karmada instances, and will support integrate with more existing Kubernetes tool chain by default, like [Clusterpedia](https://github.com/clusterpedia-io/clusterpedia) in the future. 
 - Self Inspection
 
-  Provide a mechanism that allows viewing the status of karmada own conponents and correponding components of the host cluster only through karmada's API.
+  Provide a mechanism that allows viewing the status of Karmada own conponents and corresponding components of the host cluster only through Karmada's API.
 
 ## Architecture
 
@@ -19,10 +19,10 @@
 
 This guide will cover:
 
-- Install firefly components in a Kubernetes cluster which is known as host cluster.
-- Create a karmada instance and join a member cluster to it.
+- Install Firefly's components in a Kubernetes cluster which is known as host cluster.
+- Create a Karmada instance and join a member cluster to it.
 
-### Install firefly
+### Install Firefly
 
 Before you do it, please make sure that the [cert-manager](https://cert-manager.io) has been installed on the host cluster. 
 
@@ -49,7 +49,7 @@ kubectl apply -f https://raw.githubusercontent.com/carlory/firefly/main/deploy/i
 
 **Step 1:** Create a Karmada instance named demo
 
-You can install karmada on any namespace. The given command will deploy karmada commponents on 
+You can install Karmada on any namespace. The given command will deploy Karmada components on 
 the `firefly-system` namespace.
 
 ```console
@@ -86,9 +86,9 @@ secret/kubeconfig                            Opaque                             
 secret/firefly-controller-manager-token-w6xzh      kubernetes.io/service-account-token   3      69s
 ```
 
-**Step 2:** Join an existing cluster to the karmada using the `karmadactl` binary
+**Step 2:** Join an existing cluster to the Karmada using the `karmadactl` binary
 
-Before doing it, we have to configure the hosts resolve if the host machine cannot directly access to the cluster domain of the `karmada-apiserver` service. Because this karmada instance isn't exposed when we create it. 
+Before doing it, we have to configure the hosts resolve if the host machine cannot directly access to the cluster domain of the `karmada-apiserver` service. Because this Karmada instance isn't exposed when we create it. 
 
 Note that `10.111.66.86` is the clusterIP of the `karmada-apiserver` service.
 
@@ -96,14 +96,14 @@ Note that `10.111.66.86` is the clusterIP of the `karmada-apiserver` service.
 echo '10.111.66.86    karmada-apiserver.firefly-system.svc.cluster.local' >> /etc/hosts
 ```
 
-Now, let's join an exising cluster `k8s` to the karmada instance.
+Now, let's join an exising cluster `k8s` to the Karmada instance.
 
 ```console
 kubectl get  -n firefly-system secret karmada-kubeconfig -ojsonpath='{.data.kubeconfig}' | base64 -d > config
 karmadactl join ik8s --kubeconfig config --cluster-kubeconfig <your_cluster_kubeconfig> --cluster-context  <your_cluster_context>
 ```
 
-After a member cluster is added, the correponding `scheduler-estimator` component will be auto installed by the `firefly-karamda-manager` component.
+After a member cluster is added, the corresponding `scheduler-estimator` component will be automatically installed by the `firefly-karamda-manager` component.
 
 ```console
 (⎈ |ik8s01:firefly-system)➜  ~ kubectl -n firefly-system get po,svc,rolebinding
@@ -134,7 +134,7 @@ rolebinding.rbac.authorization.k8s.io/firefly-karmada-manager   ClusterRole/admi
 
 See [RoadMap](ROADMAP.md) for details.
 
-More will be coming Soon. Welcome to [open an issue](https://github.com/carlory/firefly/issues) and [propose a PR](https://github.com/carlory/firefly/pulls). 🎉🎉🎉
+More will be coming soon. Welcome to [open an issue](https://github.com/carlory/firefly/issues) and [propose a PR](https://github.com/carlory/firefly/pulls). 🎉🎉🎉
 
 ## Contributors
 
