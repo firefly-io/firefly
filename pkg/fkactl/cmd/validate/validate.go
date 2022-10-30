@@ -36,7 +36,6 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/klog/v2"
 	cmdutil "k8s.io/kubectl/pkg/cmd/util"
-	"k8s.io/kubectl/pkg/util/i18n"
 	"k8s.io/kubectl/pkg/util/openapi"
 	"k8s.io/kubectl/pkg/util/templates"
 	"k8s.io/kubectl/pkg/validation"
@@ -76,12 +75,12 @@ type ValidateOptions struct {
 }
 
 var (
-	validateLong = templates.LongDesc(i18n.T(`
+	validateLong = templates.LongDesc(`
 		Validate a configuration to a resource by filename or stdin.
 
-		JSON and YAML formats are accepted.`))
+		JSON and YAML formats are accepted.`)
 
-	validateExample = templates.Examples(i18n.T(`
+	validateExample = templates.Examples(`
 		# Validate the configuration in deployment.json to a deployment.
 		fkactl validate -f ./deployment.json
 
@@ -89,7 +88,7 @@ var (
 		fkactl validate -k dir/
 
 		# Validate the JSON passed into stdin to a deployment.
-		cat deployment.json | fkactl validate -f -`))
+		cat deployment.json | fkactl validate -f -`)
 )
 
 // NewValidateOptions creates new ApplyOptions for the `validate` command
@@ -109,7 +108,7 @@ func NewCmdValidate(f cmdutil.Factory, ioStreams genericclioptions.IOStreams) *c
 	cmd := &cobra.Command{
 		Use:                   "validate (-f FILENAME | -k DIRECTORY)",
 		DisableFlagsInUseLine: true,
-		Short:                 i18n.T("Validate a configuration to a resource by filename or stdin"),
+		Short:                 "Validate a configuration to a resource by filename or stdin",
 		Long:                  validateLong,
 		Example:               validateExample,
 		Run: func(cmd *cobra.Command, args []string) {

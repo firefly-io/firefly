@@ -76,11 +76,14 @@ func (ctrl *KarmadaController) genCerts(karmada *installv1alpha1.Karmada, karmad
 		"kubernetes.default.svc",
 		constants.KarmadaComponentKubeAPIServer,
 		constants.KarmadaComponentWebhook,
+		constants.FireflyComponentKarmadaWebhook,
 		constants.KarmadaComponentAggregratedAPIServer,
 		fmt.Sprintf("%s.%s.svc", constants.KarmadaComponentKubeAPIServer, karmada.Namespace),
 		fmt.Sprintf("%s.%s.svc.%s", constants.KarmadaComponentKubeAPIServer, karmada.Namespace, karmada.Spec.Networking.DNSDomain),
 		fmt.Sprintf("%s.%s.svc.%s", constants.KarmadaComponentWebhook, karmada.Namespace, karmada.Spec.Networking.DNSDomain),
+		fmt.Sprintf("%s.%s.svc.%s", constants.FireflyComponentKarmadaWebhook, karmada.Namespace, karmada.Spec.Networking.DNSDomain),
 		fmt.Sprintf("%s.%s.svc", constants.KarmadaComponentWebhook, karmada.Namespace),
+		fmt.Sprintf("%s.%s.svc", constants.FireflyComponentKarmadaWebhook, karmada.Namespace),
 		fmt.Sprintf("%s.%s.svc.%s", constants.KarmadaComponentAggregratedAPIServer, karmada.Namespace, karmada.Spec.Networking.DNSDomain),
 		fmt.Sprintf("*.%s.svc.%s", karmada.Namespace, karmada.Spec.Networking.DNSDomain),
 		fmt.Sprintf("*.%s.svc", karmada.Namespace),
@@ -167,6 +170,18 @@ func (ctrl *KarmadaController) genCerts(karmada *installv1alpha1.Karmada, karmad
 	if err != nil && !errors.IsAlreadyExists(err) {
 		return err
 	}
+
+	fireflyKarmadaCert := map[string]string{
+		"tls.crt": string(data["karmada.crt"]),
+		"tls.key": string(data["karmada.key"]),
+	}
+	fireflyKarmadaWebhookSecret := SecretFromSpec(karmada.Namespace, fmt.Sprintf("%s-cert", constants.FireflyComponentKarmadaWebhook), corev1.SecretTypeOpaque, fireflyKarmadaCert)
+	controllerutil.SetOwnerReference(karmada, fireflyKarmadaWebhookSecret, scheme.Scheme)
+	_, err = ctrl.client.CoreV1().Secrets(karmada.Namespace).Create(context.TODO(), fireflyKarmadaWebhookSecret, metav1.CreateOptions{})
+	if err != nil && !errors.IsAlreadyExists(err) {
+		return err
+	}
+
 	return nil
 }
 

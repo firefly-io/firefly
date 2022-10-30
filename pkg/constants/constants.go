@@ -44,6 +44,8 @@ const (
 	KarmadaComponentSchedulerEstimator = "karmada-scheduler-estimator"
 	// FireflyComponentKarmadaManager defines the name of the karmada-karmada-manager component
 	FireflyComponentKarmadaManager = "firefly-karmada-manager"
+	// FireflyComponentKarmadaWebhook defines the name of the karmada-karmada-webhook component
+	FireflyComponentKarmadaWebhook = "firefly-karmada-webhook"
 
 	// ClusterpediaSystemNamespace defines the leader selection namespace for clusterpedia components
 	ClusterpediaSystemNamespace = "clusterpedia-system"

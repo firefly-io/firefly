@@ -88,3 +88,18 @@ jobs:
           tags: ${{ env.REGISTER }}/${{ env.IMAGE_REPO }}/firefly-karmada-manager:${{ steps.get_version.outputs.VERSION }}
           push: true
           github-token: ${{ env.REGISTER_PASSWORD }}
+
+      - name: Build & Pushing firefly-karmada-webhook image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ${{ env.IMAGE_ROOT_PATH }}/Dockerfile.firefly-karmada-webhook
+          labels: |-
+            org.opencontainers.image.source=https://github.com/${{ env.IMAGE_REPO }}/firefly
+            org.opencontainers.image.revision=${{ github.sha }}
+          platforms: ${{ env.BUILD_PLATFORM }}
+          build-args: |
+            VERSION=${{ steps.get_version.outputs.VERSION }}
+          tags: ${{ env.REGISTER }}/${{ env.IMAGE_REPO }}/firefly-karmada-webhook:${{ steps.get_version.outputs.VERSION }}
+          push: true
+          github-token: ${{ env.REGISTER_PASSWORD }}

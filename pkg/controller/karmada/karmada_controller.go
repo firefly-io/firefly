@@ -320,7 +320,7 @@ func (ctrl *KarmadaController) EnsureAPIServer(karmada *installv1alpha1.Karmada)
 	if err := ctrl.EnsureKarmadaCRDs(karmada); err != nil {
 		return err
 	}
-	if err := ctrl.EnsureKaramdaWebhook(karmada); err != nil {
+	if err := ctrl.EnsureWebhook(karmada); err != nil {
 		return err
 	}
 	return nil
@@ -345,6 +345,16 @@ func (ctrl *KarmadaController) EnsureScheduler(karmada *installv1alpha1.Karmada)
 		return err
 	}
 	if err := ctrl.EnsureKarmadaDescheduler(karmada); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ctrl *KarmadaController) EnsureWebhook(karmada *installv1alpha1.Karmada) error {
+	if err := ctrl.EnsureKaramdaWebhook(karmada); err != nil {
+		return err
+	}
+	if err := ctrl.EnsureFireflyKaramdaWebhook(karmada); err != nil {
 		return err
 	}
 	return nil

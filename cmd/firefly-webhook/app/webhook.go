@@ -17,6 +17,7 @@ limitations under the License.
 package app
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -63,7 +64,10 @@ func NewWebhookCommand() *cobra.Command {
 	namedFlagSets := cliflag.NamedFlagSets{}
 	verflag.AddFlags(namedFlagSets.FlagSet("global"))
 	globalflag.AddGlobalFlags(namedFlagSets.FlagSet("global"), cmd.Name(), logs.SkipLoggingConfigurationFlags())
-	opts.AddFlags(namedFlagSets.FlagSet("generic"))
+
+	genericFlagSet := namedFlagSets.FlagSet("generic")
+	genericFlagSet.AddGoFlagSet(flag.CommandLine)
+	opts.AddFlags(genericFlagSet)
 
 	for _, f := range namedFlagSets.FlagSets {
 		fs.AddFlagSet(f)

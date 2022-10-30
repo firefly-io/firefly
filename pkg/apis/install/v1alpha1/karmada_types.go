@@ -267,6 +267,8 @@ type KarmadaAggregratedAPIServerComponent struct {
 type WebhookComponent struct {
 	// KarmadaWebhook holds settings to karmada-webook component of the karmada.
 	KarmadaWebhook KarmadaWebhookComponent `json:"karmadaWebhook,omitempty"`
+	// FireflyKarmadaWebhook holds settings to firefly-karmada-webook component of the karmada.
+	FireflyKarmadaWebhook KarmadaWebhookComponent `json:"fireflyKarmadaWebhook,omitempty"`
 }
 
 // KarmadaWebhookComponent holds settings to karmada-webhook component of the karmada.

@@ -1003,6 +1003,7 @@ func (in *SchedulerComponent) DeepCopy() *SchedulerComponent {
 func (in *WebhookComponent) DeepCopyInto(out *WebhookComponent) {
 	*out = *in
 	in.KarmadaWebhook.DeepCopyInto(&out.KarmadaWebhook)
+	in.FireflyKarmadaWebhook.DeepCopyInto(&out.FireflyKarmadaWebhook)
 	return
 }
 
