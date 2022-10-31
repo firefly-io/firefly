@@ -22,7 +22,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 
-	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
+	installv1alpha1 "github.com/firefly-io/firefly/pkg/apis/install/v1alpha1"
 )
 
 func (ctrl *ClusterpediaController) GenerateClusterImportPolicyForKamada(clusterpedia *installv1alpha1.Clusterpedia) *policyapi.ClusterImportPolicy {

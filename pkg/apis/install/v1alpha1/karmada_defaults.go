@@ -41,7 +41,15 @@ func SetDefaults_Karmada(obj *Karmada) {
 	}
 
 	if obj.Spec.ImageRepository == "" {
-		obj.Spec.ImageRepository = "ghcr.io/carlory"
+		obj.Spec.ImageRepository = "swr.ap-southeast-1.myhuaweicloud.com/karmada"
+	}
+
+	if obj.Spec.KubeImageRepository == "" {
+		obj.Spec.KubeImageRepository = "registry.k8s.io"
+	}
+
+	if obj.Spec.FireflyImageRepository == "" {
+		obj.Spec.FireflyImageRepository = "ghcr.io/firefly-io"
 	}
 
 	network := &obj.Spec.Networking

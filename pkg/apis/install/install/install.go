@@ -22,8 +22,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 
-	"github.com/carlory/firefly/pkg/apis/install/v1alpha1"
-	"github.com/carlory/firefly/pkg/scheme"
+	"github.com/firefly-io/firefly/pkg/apis/install/v1alpha1"
+	"github.com/firefly-io/firefly/pkg/scheme"
 )
 
 func init() {

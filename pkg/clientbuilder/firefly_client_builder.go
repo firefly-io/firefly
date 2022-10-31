@@ -22,7 +22,7 @@ import (
 	"k8s.io/controller-manager/pkg/clientbuilder"
 	"k8s.io/klog/v2"
 
-	fireflyversioned "github.com/carlory/firefly/pkg/generated/clientset/versioned"
+	fireflyversioned "github.com/firefly-io/firefly/pkg/generated/clientset/versioned"
 )
 
 // FireflyControllerClientBuilder allows you to get clients and configs for firefly controllers

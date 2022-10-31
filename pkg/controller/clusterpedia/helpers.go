@@ -24,8 +24,8 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 
-	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
-	utilresource "github.com/carlory/firefly/pkg/util/resource"
+	installv1alpha1 "github.com/firefly-io/firefly/pkg/apis/install/v1alpha1"
+	utilresource "github.com/firefly-io/firefly/pkg/util/resource"
 )
 
 // IsControllPlaneProviderExists check if the given provider exists.

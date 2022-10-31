@@ -28,9 +28,9 @@ import (
 	_ "k8s.io/component-base/metrics/prometheus/clientgo" // load all the prometheus client-go plugin
 	_ "k8s.io/component-base/metrics/prometheus/version"  // for version metric registration
 
-	"github.com/carlory/firefly/cmd/firefly-controller-manager/app"
+	"github.com/firefly-io/firefly/cmd/firefly-controller-manager/app"
 	// install
-	_ "github.com/carlory/firefly/pkg/apis/install/install"
+	_ "github.com/firefly-io/firefly/pkg/apis/install/install"
 )
 
 func main() {

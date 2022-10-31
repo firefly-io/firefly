@@ -21,7 +21,7 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 
-	"github.com/carlory/firefly/pkg/apis/install/install"
+	"github.com/firefly-io/firefly/pkg/apis/install/install"
 )
 
 var Scheme = runtime.NewScheme()

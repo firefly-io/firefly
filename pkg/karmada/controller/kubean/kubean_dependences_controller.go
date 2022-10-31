@@ -38,7 +38,7 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	"github.com/carlory/firefly/pkg/scheme"
+	"github.com/firefly-io/firefly/pkg/scheme"
 )
 
 // NewClusterRefController returns a new *Controller.

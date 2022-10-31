@@ -61,13 +61,13 @@ import (
 	"k8s.io/controller-manager/pkg/leadermigration"
 	"k8s.io/klog/v2"
 
-	"github.com/carlory/firefly/cmd/firefly-karmada-manager/app/config"
-	"github.com/carlory/firefly/cmd/firefly-karmada-manager/app/options"
-	"github.com/carlory/firefly/pkg/clientbuilder"
-	fireflyversioned "github.com/carlory/firefly/pkg/generated/clientset/versioned"
-	fireflyinformers "github.com/carlory/firefly/pkg/generated/informers/externalversions"
-	fireflyctrlmgrconfig "github.com/carlory/firefly/pkg/karmada/controller/apis/config"
-	karmadafireflyinformers "github.com/carlory/firefly/pkg/karmada/generated/informers/externalversions"
+	"github.com/firefly-io/firefly/cmd/firefly-karmada-manager/app/config"
+	"github.com/firefly-io/firefly/cmd/firefly-karmada-manager/app/options"
+	"github.com/firefly-io/firefly/pkg/clientbuilder"
+	fireflyversioned "github.com/firefly-io/firefly/pkg/generated/clientset/versioned"
+	fireflyinformers "github.com/firefly-io/firefly/pkg/generated/informers/externalversions"
+	fireflyctrlmgrconfig "github.com/firefly-io/firefly/pkg/karmada/controller/apis/config"
+	karmadafireflyinformers "github.com/firefly-io/firefly/pkg/karmada/generated/informers/externalversions"
 )
 
 func init() {

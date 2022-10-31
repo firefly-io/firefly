@@ -19,8 +19,8 @@ limitations under the License.
 package toolkit
 
 import (
-	internalinterfaces "github.com/carlory/firefly/pkg/karmada/generated/informers/externalversions/internalinterfaces"
-	v1alpha1 "github.com/carlory/firefly/pkg/karmada/generated/informers/externalversions/toolkit/v1alpha1"
+	internalinterfaces "github.com/firefly-io/firefly/pkg/karmada/generated/informers/externalversions/internalinterfaces"
+	v1alpha1 "github.com/firefly-io/firefly/pkg/karmada/generated/informers/externalversions/toolkit/v1alpha1"
 )
 
 // Interface provides access to each of this group's versions.

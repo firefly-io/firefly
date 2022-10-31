@@ -28,7 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 
-	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
+	installv1alpha1 "github.com/firefly-io/firefly/pkg/apis/install/v1alpha1"
 )
 
 var gvr = schema.GroupVersionResource{Group: "policy.clusterpedia.io", Version: "v1alpha1", Resource: "clusterimportpolicies"}

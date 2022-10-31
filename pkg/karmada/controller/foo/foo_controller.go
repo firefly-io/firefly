@@ -44,11 +44,11 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	toolkitv1alpha1 "github.com/carlory/firefly/pkg/karmada/apis/toolkit/v1alpha1"
-	fireflyclient "github.com/carlory/firefly/pkg/karmada/generated/clientset/versioned"
-	toolkitinformers "github.com/carlory/firefly/pkg/karmada/generated/informers/externalversions/toolkit/v1alpha1"
-	toolkitlisters "github.com/carlory/firefly/pkg/karmada/generated/listers/toolkit/v1alpha1"
-	"github.com/carlory/firefly/pkg/scheme"
+	toolkitv1alpha1 "github.com/firefly-io/firefly/pkg/karmada/apis/toolkit/v1alpha1"
+	fireflyclient "github.com/firefly-io/firefly/pkg/karmada/generated/clientset/versioned"
+	toolkitinformers "github.com/firefly-io/firefly/pkg/karmada/generated/informers/externalversions/toolkit/v1alpha1"
+	toolkitlisters "github.com/firefly-io/firefly/pkg/karmada/generated/listers/toolkit/v1alpha1"
+	"github.com/firefly-io/firefly/pkg/scheme"
 )
 
 const (

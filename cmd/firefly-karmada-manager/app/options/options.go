@@ -39,8 +39,8 @@ import (
 	cmoptions "k8s.io/controller-manager/options"
 	netutils "k8s.io/utils/net"
 
-	fireflycontrollerconfig "github.com/carlory/firefly/cmd/firefly-karmada-manager/app/config"
-	fireflyctrlmgrconfig "github.com/carlory/firefly/pkg/controller/apis/config"
+	fireflycontrollerconfig "github.com/firefly-io/firefly/cmd/firefly-karmada-manager/app/config"
+	fireflyctrlmgrconfig "github.com/firefly-io/firefly/pkg/controller/apis/config"
 )
 
 const (

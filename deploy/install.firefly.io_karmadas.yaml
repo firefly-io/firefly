@@ -736,20 +736,21 @@ spec:
                 type: object
               fireflyImageRepository:
                 description: FireflyImageRepository sets the container registry to
-                  pull firelfy's images from. If empty, means that use the default
-                  container registry defined by the ImageRepository field.
+                  pull firelfy's images from. If empty, `ghcr.io/firefly-io` will
+                  be used by default. field.
                 type: string
               imageRepository:
                 description: ImageRepository sets the container registry to pull images
-                  from. If empty, `ghcr.io/carlory` will be used by default.
+                  from. If empty, `swr.ap-southeast-1.myhuaweicloud.com/karmada` will
+                  be used by default.
                 type: string
               karmadaVersion:
                 description: KarmadaVersion is the target version of the karmada.
                 type: string
               kubeImageRepository:
                 description: KubeImageRepository sets the container registry to pull
-                  kubernetes images from. If empty, means that use the default container
-                  registry defined by the ImageRepository field.
+                  kubernetes images from. If empty, `registry.k8s.io` will be used
+                  by default. field.
                 type: string
               kubernetesVersion:
                 description: KubernetesVersion is the target version of the kube-apiserver

@@ -24,7 +24,7 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
+	installv1alpha1 "github.com/firefly-io/firefly/pkg/apis/install/v1alpha1"
 )
 
 // MutatingAdmission mutates API request if necessary.

@@ -19,7 +19,7 @@ limitations under the License.
 package scheme
 
 import (
-	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
+	installv1alpha1 "github.com/firefly-io/firefly/pkg/apis/install/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

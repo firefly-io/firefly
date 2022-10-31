@@ -21,8 +21,8 @@ package v1alpha1
 import (
 	"net/http"
 
-	v1alpha1 "github.com/carlory/firefly/pkg/karmada/apis/toolkit/v1alpha1"
-	"github.com/carlory/firefly/pkg/karmada/generated/clientset/versioned/scheme"
+	v1alpha1 "github.com/firefly-io/firefly/pkg/karmada/apis/toolkit/v1alpha1"
+	"github.com/firefly-io/firefly/pkg/karmada/generated/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )
 

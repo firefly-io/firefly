@@ -37,7 +37,7 @@ import (
 	"k8s.io/component-base/metrics/prometheus/ratelimiter"
 	"k8s.io/klog/v2"
 
-	"github.com/carlory/firefly/pkg/karmada/scheme"
+	"github.com/firefly-io/firefly/pkg/karmada/scheme"
 )
 
 const (

@@ -1,7 +1,7 @@
 name: Docker Image CI
 
 env:
-  IMAGE_REPO: carlory
+  IMAGE_REPO: firefly-io
   REGISTER: ghcr.io
   IMAGE_ROOT_PATH: docker
   BUILD_PLATFORM: linux/amd64

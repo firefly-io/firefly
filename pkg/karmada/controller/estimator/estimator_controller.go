@@ -43,10 +43,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
-	installinformers "github.com/carlory/firefly/pkg/generated/informers/externalversions/install/v1alpha1"
-	installlisters "github.com/carlory/firefly/pkg/generated/listers/install/v1alpha1"
-	"github.com/carlory/firefly/pkg/karmada/scheme"
+	installv1alpha1 "github.com/firefly-io/firefly/pkg/apis/install/v1alpha1"
+	installinformers "github.com/firefly-io/firefly/pkg/generated/informers/externalversions/install/v1alpha1"
+	installlisters "github.com/firefly-io/firefly/pkg/generated/listers/install/v1alpha1"
+	"github.com/firefly-io/firefly/pkg/karmada/scheme"
 )
 
 const (

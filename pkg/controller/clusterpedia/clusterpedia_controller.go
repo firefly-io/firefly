@@ -35,12 +35,12 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
-	"github.com/carlory/firefly/pkg/constants"
-	fireflyclient "github.com/carlory/firefly/pkg/generated/clientset/versioned"
-	installinformers "github.com/carlory/firefly/pkg/generated/informers/externalversions/install/v1alpha1"
-	installlisters "github.com/carlory/firefly/pkg/generated/listers/install/v1alpha1"
-	"github.com/carlory/firefly/pkg/scheme"
+	installv1alpha1 "github.com/firefly-io/firefly/pkg/apis/install/v1alpha1"
+	"github.com/firefly-io/firefly/pkg/constants"
+	fireflyclient "github.com/firefly-io/firefly/pkg/generated/clientset/versioned"
+	installinformers "github.com/firefly-io/firefly/pkg/generated/informers/externalversions/install/v1alpha1"
+	installlisters "github.com/firefly-io/firefly/pkg/generated/listers/install/v1alpha1"
+	"github.com/firefly-io/firefly/pkg/scheme"
 )
 
 const (

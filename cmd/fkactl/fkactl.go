@@ -22,7 +22,7 @@ import (
 	"k8s.io/component-base/cli"
 	cmdutil "k8s.io/kubectl/pkg/cmd/util"
 
-	"github.com/carlory/firefly/pkg/fkactl/cmd"
+	"github.com/firefly-io/firefly/pkg/fkactl/cmd"
 )
 
 func main() {

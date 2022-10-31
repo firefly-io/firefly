@@ -9,7 +9,7 @@ spec:
     dnsDomain: cluster.local
   kubernetesVersion: v1.21.7
   karmadaVersion: v1.2.0
-  imageRepository: ghcr.io/carlory
+  imageRepository: ghcr.io/firefly-io
   controllerManager:
     kubeControllerManager:
       controllers:

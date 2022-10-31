@@ -27,7 +27,7 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
 
-	"github.com/carlory/firefly/pkg/constants"
+	"github.com/firefly-io/firefly/pkg/constants"
 )
 
 // Waiter is an interface for waiting for criteria in Kubernetes to happen

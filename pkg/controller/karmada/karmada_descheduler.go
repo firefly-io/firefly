@@ -26,12 +26,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
-	"github.com/carlory/firefly/pkg/constants"
-	"github.com/carlory/firefly/pkg/scheme"
-	"github.com/carlory/firefly/pkg/util"
-	clientutil "github.com/carlory/firefly/pkg/util/client"
-	maputil "github.com/carlory/firefly/pkg/util/map"
+	installv1alpha1 "github.com/firefly-io/firefly/pkg/apis/install/v1alpha1"
+	"github.com/firefly-io/firefly/pkg/constants"
+	"github.com/firefly-io/firefly/pkg/scheme"
+	"github.com/firefly-io/firefly/pkg/util"
+	clientutil "github.com/firefly-io/firefly/pkg/util/client"
+	maputil "github.com/firefly-io/firefly/pkg/util/map"
 )
 
 func (ctrl *KarmadaController) EnsureKarmadaDescheduler(karmada *installv1alpha1.Karmada) error {

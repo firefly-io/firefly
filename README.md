@@ -29,8 +29,8 @@ Before you do it, please make sure that the [cert-manager](https://cert-manager.
 **Step 1:** Install CRDs
 
 ```console
-kubectl apply -f https://raw.githubusercontent.com/carlory/firefly/main/deploy/install.firefly.io_karmadas.yaml
-kubectl apply -f https://raw.githubusercontent.com/carlory/firefly/main/deploy/install.firefly.io_clusterpedias.yaml
+kubectl apply -f https://raw.githubusercontent.com/firefly-io/firefly/main/deploy/install.firefly.io_karmadas.yaml
+kubectl apply -f https://raw.githubusercontent.com/firefly-io/firefly/main/deploy/install.firefly.io_clusterpedias.yaml
 ```
 
 **Step 2:** Create namespace
@@ -42,7 +42,7 @@ kubectl create ns firefly-system
 **Step 3:** Install components
 
 ```console
-kubectl apply -f https://raw.githubusercontent.com/carlory/firefly/main/deploy/install.yaml
+kubectl apply -f https://raw.githubusercontent.com/firefly-io/firefly/main/deploy/install.yaml
 ```
 
 ### Create a Karmada instance and join a member cluster to it
@@ -53,7 +53,7 @@ You can install Karmada on any namespace. The given command will deploy Karmada 
 the `firefly-system` namespace.
 
 ```console
-kubectl apply -f https://raw.githubusercontent.com/carlory/firefly/main/example/karmada.yaml
+kubectl apply -f https://raw.githubusercontent.com/firefly-io/firefly/main/example/karmada.yaml
 ```
 
 Waiting for a few seconds, the output of `kubectl -n firefly-system get pods,services,secrets`:
@@ -134,12 +134,12 @@ rolebinding.rbac.authorization.k8s.io/firefly-karmada-manager   ClusterRole/admi
 
 See [RoadMap](ROADMAP.md) for details.
 
-More will be coming soon. Welcome to [open an issue](https://github.com/carlory/firefly/issues) and [propose a PR](https://github.com/carlory/firefly/pulls). 🎉🎉🎉
+More will be coming soon. Welcome to [open an issue](https://github.com/firefly-io/firefly/issues) and [propose a PR](https://github.com/firefly-io/firefly/pulls). 🎉🎉🎉
 
 ## Contributors
 
-<a href="https://github.com/carlory/firefly/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=carlory/firefly" />
+<a href="https://github.com/firefly-io/firefly/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=firefly-io/firefly" />
 </a>
 
 Made with [contrib.rocks](https://contrib.rocks).

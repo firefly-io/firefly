@@ -19,7 +19,7 @@ limitations under the License.
 package fake
 
 import (
-	v1alpha1 "github.com/carlory/firefly/pkg/karmada/generated/clientset/versioned/typed/toolkit/v1alpha1"
+	v1alpha1 "github.com/firefly-io/firefly/pkg/karmada/generated/clientset/versioned/typed/toolkit/v1alpha1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )

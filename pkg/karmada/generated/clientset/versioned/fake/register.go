@@ -19,7 +19,7 @@ limitations under the License.
 package fake
 
 import (
-	toolkitv1alpha1 "github.com/carlory/firefly/pkg/karmada/apis/toolkit/v1alpha1"
+	toolkitv1alpha1 "github.com/firefly-io/firefly/pkg/karmada/apis/toolkit/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

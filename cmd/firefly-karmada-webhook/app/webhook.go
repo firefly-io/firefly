@@ -36,8 +36,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	"github.com/carlory/firefly/cmd/firefly-webhook/app/options"
-	"github.com/carlory/firefly/pkg/karmada/webhook/work"
+	"github.com/firefly-io/firefly/cmd/firefly-webhook/app/options"
+	"github.com/firefly-io/firefly/pkg/karmada/webhook/work"
 )
 
 // NewWebhookCommand creates a *cobra.Command object with default parameters

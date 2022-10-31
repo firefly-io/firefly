@@ -57,12 +57,12 @@ import (
 	"k8s.io/controller-manager/pkg/leadermigration"
 	"k8s.io/klog/v2"
 
-	"github.com/carlory/firefly/cmd/firefly-controller-manager/app/config"
-	"github.com/carlory/firefly/cmd/firefly-controller-manager/app/options"
-	"github.com/carlory/firefly/pkg/clientbuilder"
-	fireflyctrlmgrconfig "github.com/carlory/firefly/pkg/controller/apis/config"
-	fireflyversioned "github.com/carlory/firefly/pkg/generated/clientset/versioned"
-	fireflyinformers "github.com/carlory/firefly/pkg/generated/informers/externalversions"
+	"github.com/firefly-io/firefly/cmd/firefly-controller-manager/app/config"
+	"github.com/firefly-io/firefly/cmd/firefly-controller-manager/app/options"
+	"github.com/firefly-io/firefly/pkg/clientbuilder"
+	fireflyctrlmgrconfig "github.com/firefly-io/firefly/pkg/controller/apis/config"
+	fireflyversioned "github.com/firefly-io/firefly/pkg/generated/clientset/versioned"
+	fireflyinformers "github.com/firefly-io/firefly/pkg/generated/informers/externalversions"
 )
 
 func init() {

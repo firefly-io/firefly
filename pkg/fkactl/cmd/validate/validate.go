@@ -41,8 +41,8 @@ import (
 	"k8s.io/kubectl/pkg/validation"
 	"sigs.k8s.io/yaml"
 
-	"github.com/carlory/firefly/pkg/fkactl/pkg/overridemanager"
-	"github.com/carlory/firefly/pkg/util/diff"
+	"github.com/firefly-io/firefly/pkg/fkactl/pkg/overridemanager"
+	"github.com/firefly-io/firefly/pkg/util/diff"
 )
 
 // ValidateOptions defines flags and other configuration parameters for the `validate` command

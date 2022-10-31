@@ -19,8 +19,8 @@ package clusterpedia
 import (
 	"fmt"
 
-	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
-	"github.com/carlory/firefly/pkg/constants"
+	installv1alpha1 "github.com/firefly-io/firefly/pkg/apis/install/v1alpha1"
+	"github.com/firefly-io/firefly/pkg/constants"
 )
 
 func GenerateDatabaseSecretName(clusterpedia *installv1alpha1.Clusterpedia) string {

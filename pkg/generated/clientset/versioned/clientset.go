@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"net/http"
 
-	installv1alpha1 "github.com/carlory/firefly/pkg/generated/clientset/versioned/typed/install/v1alpha1"
+	installv1alpha1 "github.com/firefly-io/firefly/pkg/generated/clientset/versioned/typed/install/v1alpha1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

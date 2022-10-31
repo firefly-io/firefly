@@ -1,4 +1,4 @@
-module github.com/carlory/firefly
+module github.com/firefly-io/firefly
 
 go 1.18
 

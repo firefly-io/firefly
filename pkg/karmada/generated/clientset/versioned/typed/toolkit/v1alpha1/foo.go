@@ -22,8 +22,8 @@ import (
 	"context"
 	"time"
 
-	v1alpha1 "github.com/carlory/firefly/pkg/karmada/apis/toolkit/v1alpha1"
-	scheme "github.com/carlory/firefly/pkg/karmada/generated/clientset/versioned/scheme"
+	v1alpha1 "github.com/firefly-io/firefly/pkg/karmada/apis/toolkit/v1alpha1"
+	scheme "github.com/firefly-io/firefly/pkg/karmada/generated/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"

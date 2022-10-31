@@ -29,8 +29,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/klog/v2"
 
-	toolkitv1alpha1 "github.com/carlory/firefly/pkg/karmada/apis/toolkit/v1alpha1"
-	"github.com/carlory/firefly/pkg/karmada/util"
+	toolkitv1alpha1 "github.com/firefly-io/firefly/pkg/karmada/apis/toolkit/v1alpha1"
+	"github.com/firefly-io/firefly/pkg/karmada/util"
 )
 
 func (ctrl *FooController) buildWorks(ctx context.Context, foo *toolkitv1alpha1.Foo, clusters []*clusterv1alpha1.Cluster) error {

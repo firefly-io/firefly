@@ -24,10 +24,10 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/controller-manager/controller"
 
-	"github.com/carlory/firefly/pkg/karmada/controller/estimator"
-	"github.com/carlory/firefly/pkg/karmada/controller/foo"
-	"github.com/carlory/firefly/pkg/karmada/controller/kubean"
-	"github.com/carlory/firefly/pkg/karmada/controller/node"
+	"github.com/firefly-io/firefly/pkg/karmada/controller/estimator"
+	"github.com/firefly-io/firefly/pkg/karmada/controller/foo"
+	"github.com/firefly-io/firefly/pkg/karmada/controller/kubean"
+	"github.com/firefly-io/firefly/pkg/karmada/controller/node"
 )
 
 func startEstimatorController(ctx context.Context, controllerContext ControllerContext) (controller.Interface, bool, error) {

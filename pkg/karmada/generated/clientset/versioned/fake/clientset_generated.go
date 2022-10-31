@@ -19,9 +19,9 @@ limitations under the License.
 package fake
 
 import (
-	clientset "github.com/carlory/firefly/pkg/karmada/generated/clientset/versioned"
-	toolkitv1alpha1 "github.com/carlory/firefly/pkg/karmada/generated/clientset/versioned/typed/toolkit/v1alpha1"
-	faketoolkitv1alpha1 "github.com/carlory/firefly/pkg/karmada/generated/clientset/versioned/typed/toolkit/v1alpha1/fake"
+	clientset "github.com/firefly-io/firefly/pkg/karmada/generated/clientset/versioned"
+	toolkitv1alpha1 "github.com/firefly-io/firefly/pkg/karmada/generated/clientset/versioned/typed/toolkit/v1alpha1"
+	faketoolkitv1alpha1 "github.com/firefly-io/firefly/pkg/karmada/generated/clientset/versioned/typed/toolkit/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"

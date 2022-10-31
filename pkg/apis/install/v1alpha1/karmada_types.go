@@ -89,18 +89,18 @@ type KarmadaSpec struct {
 	Scheduler SchedulerComponent `json:"scheduler,omitempty"`
 
 	// ImageRepository sets the container registry to pull images from.
-	// If empty, `ghcr.io/carlory` will be used by default.
+	// If empty, `swr.ap-southeast-1.myhuaweicloud.com/karmada` will be used by default.
 	// +optional
 	ImageRepository string `json:"imageRepository,omitempty"`
 
 	// KubeImageRepository sets the container registry to pull kubernetes images from.
-	// If empty, means that use the default container registry defined by the ImageRepository
+	// If empty, `registry.k8s.io` will be used by default.
 	// field.
 	// +optional
 	KubeImageRepository string `json:"kubeImageRepository,omitempty"`
 
 	// FireflyImageRepository sets the container registry to pull firelfy's images from.
-	// If empty, means that use the default container registry defined by the ImageRepository
+	// If empty, `ghcr.io/firefly-io` will be used by default.
 	// field.
 	// +optional
 	FireflyImageRepository string `json:"fireflyImageRepository,omitempty"`

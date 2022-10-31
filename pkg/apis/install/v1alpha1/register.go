@@ -20,7 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/carlory/firefly/pkg/apis/install"
+	"github.com/firefly-io/firefly/pkg/apis/install"
 )
 
 // SchemeGroupVersion is group version used to register these objects

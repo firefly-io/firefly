@@ -19,8 +19,8 @@ limitations under the License.
 package install
 
 import (
-	v1alpha1 "github.com/carlory/firefly/pkg/generated/informers/externalversions/install/v1alpha1"
-	internalinterfaces "github.com/carlory/firefly/pkg/generated/informers/externalversions/internalinterfaces"
+	v1alpha1 "github.com/firefly-io/firefly/pkg/generated/informers/externalversions/install/v1alpha1"
+	internalinterfaces "github.com/firefly-io/firefly/pkg/generated/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to each of this group's versions.

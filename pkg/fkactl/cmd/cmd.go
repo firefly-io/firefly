@@ -26,8 +26,8 @@ import (
 	cmdutil "k8s.io/kubectl/pkg/cmd/util"
 	"k8s.io/kubectl/pkg/util/templates"
 
-	"github.com/carlory/firefly/pkg/fkactl/cmd/options"
-	"github.com/carlory/firefly/pkg/fkactl/cmd/validate"
+	"github.com/firefly-io/firefly/pkg/fkactl/cmd/options"
+	"github.com/firefly-io/firefly/pkg/fkactl/cmd/validate"
 )
 
 // NewFkactlCommand creates the `fkactl` command and its nested children.

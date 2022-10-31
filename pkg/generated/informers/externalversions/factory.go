@@ -23,9 +23,9 @@ import (
 	sync "sync"
 	time "time"
 
-	versioned "github.com/carlory/firefly/pkg/generated/clientset/versioned"
-	install "github.com/carlory/firefly/pkg/generated/informers/externalversions/install"
-	internalinterfaces "github.com/carlory/firefly/pkg/generated/informers/externalversions/internalinterfaces"
+	versioned "github.com/firefly-io/firefly/pkg/generated/clientset/versioned"
+	install "github.com/firefly-io/firefly/pkg/generated/informers/externalversions/install"
+	internalinterfaces "github.com/firefly-io/firefly/pkg/generated/informers/externalversions/internalinterfaces"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

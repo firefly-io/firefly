@@ -17,7 +17,7 @@ spec:
       - command:
         - /bin/firefly-controller-manager
         - --v=4
-        image: ghcr.io/carlory/firefly-controller-manager:latest
+        image: ghcr.io/firefly-io/firefly-controller-manager:latest
         imagePullPolicy: Always
         name: firefly-controller-manager
 ---
@@ -108,7 +108,7 @@ spec:
       serviceAccountName: firefly-controller-manager
       containers:
         - name: firefly-webhook
-          image: ghcr.io/carlory/firefly-webhook
+          image: ghcr.io/firefly-io/firefly-webhook
           imagePullPolicy: Always
           command:
             - /bin/firefly-webhook

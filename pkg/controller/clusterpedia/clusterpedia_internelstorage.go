@@ -19,7 +19,7 @@ package clusterpedia
 import (
 	"fmt"
 
-	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
+	installv1alpha1 "github.com/firefly-io/firefly/pkg/apis/install/v1alpha1"
 )
 
 func (ctrl *ClusterpediaController) EnsureInternalStorage(clusterpedia *installv1alpha1.Clusterpedia) error {

@@ -22,8 +22,8 @@ import (
 
 	"k8s.io/controller-manager/controller"
 
-	"github.com/carlory/firefly/pkg/controller/clusterpedia"
-	"github.com/carlory/firefly/pkg/controller/karmada"
+	"github.com/firefly-io/firefly/pkg/controller/clusterpedia"
+	"github.com/firefly-io/firefly/pkg/controller/karmada"
 )
 
 func startKarmadaController(ctx context.Context, controllerContext ControllerContext) (controller.Interface, bool, error) {

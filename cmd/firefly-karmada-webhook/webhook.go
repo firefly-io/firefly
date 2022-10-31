@@ -22,7 +22,7 @@ import (
 	"k8s.io/component-base/cli"
 	_ "k8s.io/component-base/logs/json/register" // for JSON log format registration
 
-	"github.com/carlory/firefly/cmd/firefly-karmada-webhook/app"
+	"github.com/firefly-io/firefly/cmd/firefly-karmada-webhook/app"
 )
 
 func main() {

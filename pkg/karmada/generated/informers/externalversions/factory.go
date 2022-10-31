@@ -23,9 +23,9 @@ import (
 	sync "sync"
 	time "time"
 
-	versioned "github.com/carlory/firefly/pkg/karmada/generated/clientset/versioned"
-	internalinterfaces "github.com/carlory/firefly/pkg/karmada/generated/informers/externalversions/internalinterfaces"
-	toolkit "github.com/carlory/firefly/pkg/karmada/generated/informers/externalversions/toolkit"
+	versioned "github.com/firefly-io/firefly/pkg/karmada/generated/clientset/versioned"
+	internalinterfaces "github.com/firefly-io/firefly/pkg/karmada/generated/informers/externalversions/internalinterfaces"
+	toolkit "github.com/firefly-io/firefly/pkg/karmada/generated/informers/externalversions/toolkit"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"net/http"
 
-	toolkitv1alpha1 "github.com/carlory/firefly/pkg/karmada/generated/clientset/versioned/typed/toolkit/v1alpha1"
+	toolkitv1alpha1 "github.com/firefly-io/firefly/pkg/karmada/generated/clientset/versioned/typed/toolkit/v1alpha1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

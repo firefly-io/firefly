@@ -23,7 +23,7 @@ import (
 	"k8s.io/controller-manager/pkg/clientbuilder"
 	"k8s.io/klog/v2"
 
-	fireflyclient "github.com/carlory/firefly/pkg/karmada/generated/clientset/versioned"
+	fireflyclient "github.com/firefly-io/firefly/pkg/karmada/generated/clientset/versioned"
 )
 
 // KarmadaControllerClientBuilder allows you to get clients and configs for controllers of the firefly-karmada-manager

@@ -31,11 +31,11 @@ import (
 	netutils "k8s.io/utils/net"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	installv1alpha1 "github.com/carlory/firefly/pkg/apis/install/v1alpha1"
-	"github.com/carlory/firefly/pkg/constants"
-	"github.com/carlory/firefly/pkg/scheme"
-	"github.com/carlory/firefly/pkg/util"
-	"github.com/carlory/firefly/pkg/util/certs"
+	installv1alpha1 "github.com/firefly-io/firefly/pkg/apis/install/v1alpha1"
+	"github.com/firefly-io/firefly/pkg/constants"
+	"github.com/firefly-io/firefly/pkg/scheme"
+	"github.com/firefly-io/firefly/pkg/util"
+	"github.com/firefly-io/firefly/pkg/util/certs"
 )
 
 var certList = []string{

@@ -22,7 +22,7 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
 
-	fireflyctrlmgrconfig "github.com/carlory/firefly/pkg/controller/apis/config"
+	fireflyctrlmgrconfig "github.com/firefly-io/firefly/pkg/controller/apis/config"
 )
 
 // Config is the main context object for the controller manager.
